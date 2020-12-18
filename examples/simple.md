@@ -1,6 +1,6 @@
 ---
-name: <string> Name of the user
-age: <number> Age of the user
+name: Name of the user
+age: Age of the user
 ---
 
 # Header
@@ -11,9 +11,7 @@ Some **bold** ~~stuff~~
 Content
 
 ```javascript
-const name = args.name || 'Mr. Dicken Bols';
-const age = args.age || 18;
-
+const { name = "Someone", age = 18 } = args;
 const fibo = n => n < 2 ? n : fibo(n - 1) + fibo(n - 2);
 
 console.log('The first js block executing bro');
@@ -40,12 +38,26 @@ print("Hi from the python block")
 return { 'fact10': fact(10) }
 ```
 
+## Some bash in the middle
+bashy bash boy
+
+```bash
+echo "[$(get_ctx name)] ";
+
+return_ctx \
+  "hello" "world" \
+  "some" "content" \
+;
+```
+
 
 ## JS section 2
 Some more stuff
 
 ```javascript
-const { name, someFibo, fact10, isAdult } = context;
+const { hello, name, someFibo, fact10, isAdult } = context;
+
+console.log(`Hello, ${hello}`);
 
 console.log(`Factorial of 10 = ${fact10}`);
 

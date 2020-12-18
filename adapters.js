@@ -63,9 +63,39 @@ requests.post('http://127.0.0.1:${config.port}/?lang=python', data=json.dumps(re
   },
 });
 
+const BashAdapter = ({ config, getEnv }) => Adapter({
+  evaluate: code => spawnProcess('bash', ['-c', code]),
+  wrap: async code => {
+    const env = await getEnv();
+    return `
+      args_json='${JSON.stringify(env.args)}';
+      context_json='${JSON.stringify(env.context)}';
+
+      get_arg() { echo "$args_json" | jq "$1" 2>/dev/null; }
+      get_ctx() { echo "$context_json" | jq "$1" 2>/dev/null; }
+
+      return_ctx() {
+        local json="{ ";
+        while [[ $# -gt 0 ]]; do
+          key="$1"; value="$2";
+          shift 2;
+          json="$json\\"$key\\": \\"$value\\"";
+
+          [[ $# -gt 0 ]] && json="$json,";
+        done;
+        json="$json }";
+
+        curl 'http://127.0.0.1:${config.port}/?lang=javascript' -X POST -d "$json" >/dev/null 2>&1;
+      }
+
+      ${code}
+    `.trim();
+  },
+});
 
 module.exports = {
   javascript: NodeAdapter,
   js: NodeAdapter,
   python: PythonAdapter,
+  bash: BashAdapter,
 };
