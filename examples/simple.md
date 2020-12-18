@@ -42,7 +42,7 @@ return { 'fact10': fact(10) }
 bashy bash boy
 
 ```bash
-echo "[$(get_ctx name)] ";
+echo "Name:: [$(get_ctx name)]";
 
 return_ctx \
   "hello" "world" \

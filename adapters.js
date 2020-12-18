@@ -71,8 +71,10 @@ const BashAdapter = ({ config, getEnv }) => Adapter({
       args_json='${JSON.stringify(env.args)}';
       context_json='${JSON.stringify(env.context)}';
 
-      get_arg() { echo "$args_json" | jq "$1" 2>/dev/null; }
-      get_ctx() { echo "$context_json" | jq "$1" 2>/dev/null; }
+      prop() { echo "$2" | jq -r ".$1" 2>/dev/null; }
+
+      get_arg() { prop "$1" "$args_json"; }
+      get_ctx() { prop "$1" "$context_json"; }
 
       return_ctx() {
         local json="{ ";
