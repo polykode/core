@@ -1,6 +1,8 @@
 const R = require('ramda');
 const { spawn } = require('child_process');
 
+const then = fn => p => p.then(fn);
+
 const spawnProcess = (cmd, args = [], input) => {
   const ps = spawn(cmd, args);
 
@@ -18,27 +20,31 @@ const spawnProcess = (cmd, args = [], input) => {
 };
 
 const Adapter = ({ evaluate, wrap }) => ({
-  execute: R.compose(evaluate, wrap),
+  execute: R.compose(then(evaluate), wrap),
 });
 
-const NodeAdapter = env => Adapter({
+const NodeAdapter = ({ config, getEnv }) => Adapter({
   evaluate: code => spawnProcess('node', ['-'], code),
-  wrap: code => `
-    const { args, context } = ${JSON.stringify(env)};
-    const codeBlock = () => {
-      ${code}
-    };
-    const result = codeBlock() || {};
-    require('node-fetch')('http://127.0.0.1:${env.port}/?lang=javascript', {
-      method: 'POST',
-      body: JSON.stringify(result),
-    })
-  `,
+  wrap: async code => {
+    const env = await getEnv();
+    return `
+      const { args, context } = ${JSON.stringify(env)};
+      const codeBlock = () => {
+        ${code}
+      };
+      const result = codeBlock() || {};
+      require('node-fetch')('http://127.0.0.1:${config.port}/?lang=javascript', {
+        method: 'POST',
+        body: JSON.stringify(result),
+      })
+    `.trim();
+  },
 });
 
-const PythonAdapter = env => Adapter({
+const PythonAdapter = ({ config, getEnv }) => Adapter({
   evaluate: code => spawnProcess('python', ['-c', code]),
-  wrap: code => {
+  wrap: async code => {
+    const env = await getEnv();
     const envString = JSON.stringify(env);
     return `
 import json
@@ -52,7 +58,7 @@ def codeBlock():
   ${code.split('\n').join('\n  ')}
 
 result = codeBlock()
-requests.post('http://127.0.0.1:${env.port}/?lang=python', data=json.dumps(result))
+requests.post('http://127.0.0.1:${config.port}/?lang=python', data=json.dumps(result))
 `.trim()
   },
 });

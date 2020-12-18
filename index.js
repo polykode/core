@@ -6,8 +6,9 @@ const { readFileSync } = require('fs');
 
 const serial = fn => xs => xs.reduce((acc, x) => acc.then(_ => fn(x)), Promise.resolve())
 
+const config = { port: 44931 };
+
 const environment = {
-  port: 44931,
   context: {},
   args: {}, // TODO
 };
@@ -16,7 +17,11 @@ const languages = require('./adapters');
 const runCodeBlock = ({ lang, text }) => {
   const adapter = languages[lang];
   // NoAdapter error here
-  return adapter(environment).execute(text);
+  const options = {
+    config,
+    getEnv: async () => environment,
+  };
+  return adapter(options).execute(text);
 };
 
 // Use tcp socket instead?
@@ -40,7 +45,7 @@ const run = R.compose(
   marked.lexer,
 );
 
-server.listen(environment.port, () => {
+server.listen(config.port, () => {
   const md = readFileSync('./examples/simple.md', 'utf-8');
 
   run(md)
