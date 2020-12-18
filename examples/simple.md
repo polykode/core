@@ -12,15 +12,30 @@ Content
 
 ```javascript
 const name = args.name;
-const age = args.age;
+const age = args.age || 18;
 
-console.log({ name, age });
+const fibo = n => n < 2 ? n : fibo(n - 1) + fibo(n - 2);
 
 return {
   name,
   age,
+  someFibo: Array.from({ length: 10 }, (_, i) => i).map(fibo),
   isAdult: age >= 18,
 };
+```
+
+
+## New section
+Some more stuff
+
+```javascript
+const { name, someFibo, isAdult } = context;
+
+someFibo.forEach((n, i) => {
+  console.log(`Fibo #${i} = ${n}`);
+});
+
+console.log(isAdult ? 'You good bro' : 'Fuck off titty sucker')
 ```
 
 
