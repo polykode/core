@@ -1,7 +1,6 @@
 const R = require('ramda');
 const { spawn } = require('child_process');
 
-// TODO
 const spawnProcess = (cmd, args = [], input) => {
   const ps = spawn(cmd, args);
 
@@ -12,7 +11,7 @@ const spawnProcess = (cmd, args = [], input) => {
     ps.stdin.end();
   }
 
-  return new Promise(res => {
+  return new Promise((res, rej) => {
     ps.on('close', status => status !== 1 ? res() : rej());
     ps.on('error', err => rej(err));
   });
@@ -34,21 +33,25 @@ const NodeAdapter = env => Adapter({
       method: 'POST',
       body: JSON.stringify(result),
     })
-    // Push to server
   `,
 });
 
 const PythonAdapter = env => Adapter({
   evaluate: code => spawnProcess('python', ['-c', code]),
-  wrap: code => `
-args = {}
-context = {}
+  wrap: code => {
+    const envString = JSON.stringify(env);
+    return `
+import json
+__env = json.loads('${envString}')
+args = __env['args']
+context = __env['context']
 
 def codeBlock():
   ${code.split('\n').join('\n  ')}
 
 result = codeBlock()
-`.trim(),
+`.trim()
+  },
 });
 
 

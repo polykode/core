@@ -11,7 +11,7 @@ Some **bold** ~~stuff~~
 Content
 
 ```javascript
-const name = args.name;
+const name = args.name || 'Mr. Dicken Bols';
 const age = args.age || 18;
 
 const fibo = n => n < 2 ? n : fibo(n - 1) + fibo(n - 2);
@@ -43,9 +43,8 @@ console.log(isAdult ? 'You good bro' : 'Fuck off titty sucker')
 Content 2
 
 ```python
+name = context['name']
 
-helo = "world"
-
-print(helo)
+print("This is the python block, %s" % name)
 ```
 
