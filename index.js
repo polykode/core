@@ -26,8 +26,10 @@ const server = http.createServer((req, res) => {
   let data = '';
   req.on('data', chunk => (data += chunk.toString()));
   req.on('end', () => {
-    const json = JSON.parse(data);
-    Object.assign(environment.context, json);
+    try {
+      const json = JSON.parse(data);
+      Object.assign(environment.context, json);
+    } catch (e) {}
   });
   res.end('wow');
 });

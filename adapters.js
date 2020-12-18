@@ -42,6 +42,8 @@ const PythonAdapter = env => Adapter({
     const envString = JSON.stringify(env);
     return `
 import json
+import requests
+
 __env = json.loads('${envString}')
 args = __env['args']
 context = __env['context']
@@ -50,6 +52,7 @@ def codeBlock():
   ${code.split('\n').join('\n  ')}
 
 result = codeBlock()
+requests.post('http://127.0.0.1:${env.port}/?lang=python', data=json.dumps(result))
 `.trim()
   },
 });

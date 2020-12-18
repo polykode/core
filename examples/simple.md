@@ -7,7 +7,7 @@ age: <number> Age of the user
 
 Some **bold** ~~stuff~~
 
-## Section
+## JS Section 1
 Content
 
 ```javascript
@@ -24,12 +24,26 @@ return {
 };
 ```
 
+## Python section 1
+Content 2
 
-## New section
+```python
+def fact(n):
+  if n <= 1:
+    return 1
+  return n * fact(n - 1)
+  
+return { 'fact10': fact(10) }
+```
+
+
+## JS section 2
 Some more stuff
 
 ```javascript
-const { name, someFibo, isAdult } = context;
+const { name, someFibo, fact10, isAdult } = context;
+
+console.log(`Factorial of 10 = ${fact10}`);
 
 someFibo.forEach((n, i) => {
   console.log(`Fibo #${i} = ${n}`);
@@ -39,7 +53,7 @@ console.log(isAdult ? 'You good bro' : 'Fuck off titty sucker')
 ```
 
 
-## Section 2
+## Python section 2
 Content 2
 
 ```python
