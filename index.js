@@ -13,17 +13,6 @@ const environment = {
   args: {}, // TODO
 };
 
-const languages = require('./adapters');
-const runCodeBlock = ({ lang, text }) => {
-  const adapter = languages[lang];
-  // NoAdapter error here
-  const options = {
-    config,
-    getEnv: async () => environment,
-  };
-  return adapter(options).execute(text);
-};
-
 // Use tcp socket instead?
 const server = http.createServer((req, res) => {
   if (req.method !== 'POST') return res.end();
@@ -39,14 +28,32 @@ const server = http.createServer((req, res) => {
   res.end('wow');
 });
 
-const run = R.compose(
-  serial(runCodeBlock),
-  R.filter(R.propEq('type', 'code')),
-  marked.lexer,
-);
+const languages = require('./adapters');
+const runCodeBlock = ({ lang, text }) => {
+  const adapter = languages[lang];
+  // NoAdapter error here
+  const options = {
+    config,
+    getEnv: async () => environment,
+  };
+  return adapter(options).execute(text);
+};
+
+const runAction = R.cond([
+  [R.propEq('type', 'code'), async block => {
+    console.log('```', block.lang);
+    await runCodeBlock(block);
+    console.log('```');
+  }],
+  [R.propEq('type', 'heading'), async ({ raw }) => console.log(`\n${raw}`)],
+  [R.T, async () => {}],
+])
+
+const run = serial(runAction);
 
 server.listen(config.port, () => {
-  const md = readFileSync('./examples/simple.md', 'utf-8');
+  const content = readFileSync('./examples/simple.md', 'utf-8');
+  const md = marked.lexer(content);
 
   run(md)
     .then(() => server.close())

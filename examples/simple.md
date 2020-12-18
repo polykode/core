@@ -16,6 +16,8 @@ const age = args.age || 18;
 
 const fibo = n => n < 2 ? n : fibo(n - 1) + fibo(n - 2);
 
+console.log('The first js block executing bro');
+
 return {
   name,
   age,
@@ -32,7 +34,9 @@ def fact(n):
   if n <= 1:
     return 1
   return n * fact(n - 1)
-  
+
+print("Hi from the python block")
+
 return { 'fact10': fact(10) }
 ```
 
