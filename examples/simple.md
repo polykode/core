@@ -1,80 +1,50 @@
----
-name: Name of the user
-age: Age of the user
----
+# Simple JS modules
+A simple demo of js modules in markdown
 
-# Header
 
-Some **bold** ~~stuff~~
+### Creating simple modules
+Export functions just like it was any other js module
 
-## JS Section 1
-Content
-
-```javascript
-const { name = "Someone", age = 18 } = args;
-const fibo = n => n < 2 ? n : fibo(n - 1) + fibo(n - 2);
-
-console.log('The first js block executing bro');
-
-return {
-  name,
-  age,
-  someFibo: Array.from({ length: 10 }, (_, i) => i).map(fibo),
-  isAdult: age >= 18,
-};
-```
-
-## Python section 1
-Content 2
-
-```python
-def fact(n):
-  if n <= 1:
-    return 1
-  return n * fact(n - 1)
-
-print("Hi from the python block")
-
-return { 'fact10': fact(10) }
-```
-
-## Some bash in the middle
-bashy bash boy
-
-```bash
-echo "Name:: [$(get_ctx name)]";
-
-return_ctx \
-  "hello" "world" \
-  "some" "content" \
-;
+<!--- module timer -->
+```js
+export const waitFor = delay => new Promise(res => setTimeout(res, delay));
 ```
 
 
-## JS section 2
-Some more stuff
+### Computing and exporting values
+Asynchronous, synchronous, its all the same man. Export values after some time
 
-```javascript
-const { hello, name, someFibo, fact10, isAdult } = context;
+<!--- module main -->
+```js
+import { waitFor } from '@@timer';
 
-console.log(`Hello, ${hello}`);
+await waitFor(1000);
 
-console.log(`Factorial of 10 = ${fact10}`);
+export const value = 200;
+```
 
-someFibo.forEach((n, i) => {
-  console.log(`Fibo #${i} = ${n}`);
-});
+### Importing values from modules
+This is where you start doing things. Add `<!--- run -->` before code block to execute it.
 
-console.log(isAdult ? 'You good bro' : 'Fuck off titty sucker')
+<!--- run -->
+```js
+import { value } from '@@main';
+
+console.log(value);
+```
+
+### Updating context
+You can update the global context. This context will be available to read everywhere
+
+<!--- run -->
+```
+updateContext({ a: 20, b: 60 });
 ```
 
 
-## Python section 2
-Content 2
+### Inline blocks
 
-```python
-name = context['name']
+Remember those values we updated in the context? Here they are - `@@a` and `@@b`
 
-print("This is the python block, %s" % name)
-```
+Prefixing an inline code with `@@` will make it display a value with that name from the global context
 
