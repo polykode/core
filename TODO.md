@@ -8,14 +8,23 @@
   - [ ] Meta/Hints parsing parsec
   - [ ] Executable markdown code blocks
   - [ ] Interactions between multiple languages
-  - [ ] Communication?
-    - [ ] server-client
-  - [ ] Run section code upto a section?
+  - [ ] XMD server + clients (code blocks)
+  - [ ] Allow importing other markdown files
   - [ ] Meta data syntax on top of document as comment
 
 ## Dependencies
   - [X] Markdown parser https://hackage.haskell.org/package/cmark
   - [ ] Container - https://hackage.haskell.org/package/lxc
+
+## Metadata?
+  - [ ] Dependencies/Dependency files (package.json, requirements.txt, etc)
+  - [ ] Timeout (has to be less than container timeout)
+
+## Container
+  - [ ] Execute inside lxc
+  - [ ] Run xmd server inside lxc
+  - [ ] Limit interactions with the network
+  - [ ] Limit total execution time (to avoid fork bombs)
 
 ## Modules
   - [ ] Create dependency map
@@ -24,6 +33,8 @@
 ## Adapter responsibilities
   - Parsing
   - Transformation
+  - Check if the required dependencies are satisfied
+  - If dependency not present and you know how to install it, install it
   - Import data from xmd server
   - Make function calls to xmd server
   - Update global context (via xmd server)
