@@ -7,6 +7,8 @@ let
     haskellPackages.cabal-install
     pkgs.entr # Re-run on file change
     pkgs.lxc
+    pkgs.lxd
+    pkgs.gnupg
   ];
 
   commonHsPackages = with haskellPackages; [
