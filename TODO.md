@@ -1,6 +1,7 @@
 ## Current
   - [X] Parse out code blocks
   - [ ] Get LXC to run code blocks serially (only js)
+  - [ ] Fix LXC apparmor issue
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Work on [modules](#modules)
 

@@ -15,14 +15,15 @@ data XMDNode
 
 cmarkOptions = [optUnsafe, optNormalize]
 
-mapDoc :: [XMDNode] -> [Node] -> [XMDNode]
-mapDoc acc [] = acc
-mapDoc acc (Node _ (CODE_BLOCK lang code) nodes : rest) = mapDoc (acc ++ newNodes) rest
-  where
-    cmarkNode = Node Nothing (CODE_BLOCK lang code) []
-    newNodes = [Code (Text.unpack lang) code cmarkNode]
-mapDoc acc (Node _ nodeType nodes : rest) = mapDoc (acc ++ newNodes) rest
-  where
-    newNodes = [RawNode (Node Nothing nodeType nodes) []]
+wrapNodes :: [XMDNode] -> [Node] -> [XMDNode]
+wrapNodes acc = \case
+  [] -> acc
+  ((Node _ (CODE_BLOCK lang code) _) : rest) -> wrapNodes (acc ++ newNodes) rest
+    where
+      newNodes = [Code (Text.unpack lang) code cmarkNode]
+      cmarkNode = Node Nothing (CODE_BLOCK lang code) []
+  ((Node _ nodeType nodes) : rest) -> wrapNodes (acc ++ newNodes) rest
+    where
+      newNodes = [RawNode (Node Nothing nodeType nodes) $ wrapNodes [] nodes]
 
-parse = mapDoc [] . (: []) . commonmarkToNode cmarkOptions . Text.pack
+parse = wrapNodes [] . (: []) . commonmarkToNode cmarkOptions . Text.pack
