@@ -2,9 +2,14 @@
 Content for stuffff
 
 ```js
-console.log("Hello world")
+echo "fuck you"
 ```
 
 ```js
-console.log("Nice reeetaaard: ", 50 + 54)
+echo "this kinda slapps broooo"
+echo "fuck you"
+echo "foobarooo"
+echo -n "foobarooo"
+echo -n "foobarooo"
+echo "foobarooo"
 ```

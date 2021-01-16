@@ -2,18 +2,21 @@
   - [X] Parse out code blocks
   - [X] Route stdout via file descriptors
   - [X] Route stderr via fd
+  - [ ] Setup a dynamic lxc environment/image/template
   - [ ] Route stdin via fd (with custom prompts)
   - [ ] Get LXC to run code blocks serially (only js)
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Work on [modules](#modules)
 
-## Rough tasks
+## Ideas
   - [ ] Meta/Hints parsing parsec
+  - [ ] Allow disabling stdout logging
   - [ ] Executable markdown code blocks
   - [ ] Interactions between multiple languages
   - [ ] XMD server + clients (code blocks)
   - [ ] Allow importing other markdown files
   - [ ] Meta data syntax on top of document as comment
+  - [ ] Caching?
 
 ## Dependencies
   - [X] Markdown parser https://hackage.haskell.org/package/cmark

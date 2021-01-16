@@ -95,6 +95,7 @@ runCommand ctx cmd args = do
         LXC.defaultAttachOptions
           { LXC.attachStdoutFD = outFd,
             LXC.attachStderrFD = errFd,
+            LXC.attachEnvPolicy = LXC.AttachClearEnv,
             LXC.attachExtraEnvVars = ["PATH=$PATH:/bin:/usr/bin:/usr/local/bin"]
           }
 

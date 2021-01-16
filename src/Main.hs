@@ -18,21 +18,16 @@ runIOErr def m = do
       print e
       pure def
 
-executeCommand container = do
-  liftIO . putStrLn $ "---------------------------------------"
-  launch container
-  printContainerState container
+runInContainer fn container =
+  runIOErr () (fn container) >> runIOErr () (cleanup container)
 
-  -- Wait for startup
-  waitForStartup container
-
-  result <- runCommand container "sh" ["-c", "echo 'Hello, world!'"]
-
-  liftIO . putStrLn $ "Result?: " ++ show result
-
-  liftIO . putStrLn $ "---------------------------------------"
+loadMdFile container = do
+  mdStr <- liftIO $ readFile "./examples/serial.md"
+  result <- evaluate container mdStr
+  liftIO $ print result
+  return ()
 
 main :: IO ()
 main = runIOErr () $ do
   container <- createContext "fuckoff"
-  liftIO $ runIOErr () (executeCommand container) >> runIOErr () (cleanup container)
+  liftIO $ runInContainer loadMdFile container
