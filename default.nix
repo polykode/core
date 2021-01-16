@@ -16,6 +16,9 @@ let
     cmark
     raw-strings-qq
     transformers
+    text
+    lxc
+    unix
   ];
 in
   with haskellPackages; mkDerivation {
