@@ -1,7 +1,8 @@
 ## Current
   - [X] Parse out code blocks
+  - [ ] Route stdout via file descriptors
+  - [ ] Route stdin via file descriptors (with custom prompts)
   - [ ] Get LXC to run code blocks serially (only js)
-  - [ ] Fix LXC apparmor issue
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Work on [modules](#modules)
 
