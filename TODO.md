@@ -1,7 +1,8 @@
 ## Current
   - [X] Parse out code blocks
-  - [ ] Route stdout via file descriptors
-  - [ ] Route stdin via file descriptors (with custom prompts)
+  - [X] Route stdout via file descriptors
+  - [X] Route stderr via fd
+  - [ ] Route stdin via fd (with custom prompts)
   - [ ] Get LXC to run code blocks serially (only js)
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Work on [modules](#modules)
@@ -27,6 +28,7 @@
   - [ ] Run xmd server inside lxc
   - [ ] Limit interactions with the network
   - [ ] Limit total execution time (to avoid fork bombs)
+  - [ ] Create a pool of containers to optimize
 
 ## Modules
   - [ ] Create dependency map

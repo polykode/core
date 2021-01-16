@@ -90,11 +90,12 @@ runCommand ctx cmd args = do
     openFd f = createFile f (unionFileModes namedPipeMode stdFileMode)
     attachOptions = do
       outFd <- liftIO . openFd . outputFile $ ctx
+      errFd <- liftIO . openFd . errorFile $ ctx
       return $
         LXC.defaultAttachOptions
-          { LXC.attachExtraEnvVars = ["PATH=$PATH:/bin:/usr/bin:/usr/local/bin"],
-            LXC.attachStdoutFD = outFd
-            --LXC.attachStdinFD = inputHandle ctx
+          { LXC.attachStdoutFD = outFd,
+            LXC.attachStderrFD = errFd,
+            LXC.attachExtraEnvVars = ["PATH=$PATH:/bin:/usr/bin:/usr/local/bin"]
           }
 
 createContext :: String -> IOErr ContainerContext
