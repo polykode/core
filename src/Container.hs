@@ -39,17 +39,33 @@ printContainerState c = run c LXC.state >>= liftIO . putStrLn . ("State: " ++) .
 waitForStartup :: ContainerContext -> IOErr Bool
 waitForStartup c = run c $ LXC.wait LXC.ContainerRunning (-1)
 
-launch ctx = do
-  created <- run ctx $ LXC.create "download" Nothing Nothing [] ["-d", "ubuntu", "-r", "trusty", "-a", "amd64"]
-  started <- run ctx $ LXC.start False []
-  return ()
+ifM :: (Monad m) => m Bool -> a -> m a -> m a
+ifM predicate def m = do
+  check <- predicate
+  if check then pure def else m
 
+failWith = except . Left
+
+containerArgs = ["-d", "ubuntu", "-r", "trusty", "-a", "amd64"]
+
+launch :: ContainerContext -> IOErr ()
+launch ctx = do
+  created <-
+    run ctx $
+      ifM LXC.isDefined True $
+        LXC.create "download" Nothing Nothing [LXC.CreateQuiet] containerArgs
+  started <- run ctx $ ifM LXC.isRunning True (LXC.start False [])
+  if not created
+    then failWith $ ContainerErr "Unable to create container"
+    else
+      if not started
+        then failWith $ ContainerErr "Unable to start container"
+        else pure ()
+
+cleanup :: ContainerContext -> IOErr ()
 cleanup ctx = do
+  liftIO . putStrLn $ "Cleanup crew has arrived"
   run ctx $ LXC.stop >> LXC.destroy
-  --liftIO $ do
-  --  hClose (outputHandle ctx)
-  --  hClose (inputHandle ctx)
-  --  hClose (errorHandle ctx)
   return ()
 
 runCommand :: ContainerContext -> String -> [String] -> Result
@@ -59,7 +75,6 @@ runCommand ctx cmd args = do
   case exitState of
     Nothing -> except . Left $ RunErr "Command not executed"
     Just code -> liftIO $ do
-      --liftIO $ hShow ((`openFile` ReadWriteMode) . outputFile $ ctx) >>= putStrLn
       outF <- openFile (outputFile ctx) ReadWriteMode
       errF <- openFile (errorFile ctx) ReadWriteMode
       (outStr, errStr) <- readContents outF errF

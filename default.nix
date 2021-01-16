@@ -17,7 +17,7 @@ let
     raw-strings-qq
     transformers
     text
-    lxc
+    #lxc
     strict
     unix
   ];

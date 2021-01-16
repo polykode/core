@@ -5,21 +5,21 @@ module Main where
 --import Evaluator
 
 import Container
+import Control.Applicative
 import Control.Monad.Trans.Except
 import Evaluator
 
-runIOErr :: IOErr () -> IO ()
-runIOErr m =
+runIOErr :: a -> IOErr a -> IO a
+runIOErr def m = do
   runExceptT m >>= \case
-    Right _ -> pure ()
+    Right x -> pure x
     Left e -> do
       putStrLn "Fuck"
       print e
+      pure def
 
-main :: IO ()
-main = runIOErr $ do
+executeCommand container = do
   liftIO . putStrLn $ "---------------------------------------"
-  container <- createContext "fuckoff"
   launch container
   printContainerState container
 
@@ -30,5 +30,9 @@ main = runIOErr $ do
 
   liftIO . putStrLn $ "Result?: " ++ show result
 
-  cleanup container
   liftIO . putStrLn $ "---------------------------------------"
+
+main :: IO ()
+main = runIOErr () $ do
+  container <- createContext "fuckoff"
+  liftIO $ runIOErr () (executeCommand container) >> runIOErr () (cleanup container)
