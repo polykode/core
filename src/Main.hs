@@ -1,28 +1,34 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Main where
 
 --import Evaluator
 
 import Container
-import GHC.IO.Exception
-import Parser
-import System.LXC
-import System.Posix.Files
-import System.Posix.IO
-import System.Posix.Types
+import Control.Monad.Trans.Except
+import Evaluator
+
+runIOErr :: IOErr () -> IO ()
+runIOErr m =
+  runExceptT m >>= \case
+    Right _ -> pure ()
+    Left e -> do
+      putStrLn "Fuck"
+      print e
 
 main :: IO ()
-main = do
-  putStrLn "---------------------------------------"
-  ctx <- createContext
-  launch ctx
-  printContainerState ctx
+main = runIOErr $ do
+  liftIO . putStrLn $ "---------------------------------------"
+  container <- createContext "fuckoff"
+  launch container
+  printContainerState container
 
   -- Wait for startup
-  waitForStartup ctx
+  waitForStartup container
 
-  result <- runCommand ctx "sh" ["-c", "echo 'Hello, world!'"]
+  result <- runCommand container "sh" ["-c", "echo 'Hello, world!'"]
 
-  putStrLn $ "Result?: " ++ show result
+  liftIO . putStrLn $ "Result?: " ++ show result
 
-  cleanup ctx
-  putStrLn "---------------------------------------"
+  cleanup container
+  liftIO . putStrLn $ "---------------------------------------"

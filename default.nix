@@ -18,6 +18,7 @@ let
     transformers
     text
     lxc
+    strict
     unix
   ];
 in

@@ -1,27 +1,42 @@
 module Container where
 
+--import Control.Monad.Trans.State
+
+import Control.Concurrent
+import Control.Monad.Trans.Except
+import qualified Data.Text as T
 import GHC.IO.Exception
+import System.IO hiding (hGetContents)
+import System.IO.Strict (hGetContents)
 import qualified System.LXC as LXC
 import System.Posix.Files
 import System.Posix.IO
-import System.Posix.Types
 
 data ContainerContext = ContainerContext
-  { stdout :: Fd,
-    stdin :: Fd,
-    stderr :: Fd,
+  { outputFile :: FilePath,
+    inputFile :: FilePath,
+    errorFile :: FilePath,
     container :: LXC.Container
   }
 
-run ctx = LXC.withContainer (container ctx)
+data Error = ContainerErr String | RunErr String deriving (Show)
 
-printLastError :: ContainerContext -> IO ()
-printLastError c = run c LXC.getLastError >>= putStrLn . ("Error: " ++) . show . fmap LXC.prettyLXCError
+type IOErr = ExceptT Error IO
 
-printContainerState :: ContainerContext -> IO ()
-printContainerState c = run c LXC.state >>= putStrLn . ("State: " ++) . show
+type Result = IOErr (ExitCode, T.Text, T.Text)
 
-waitForStartup :: ContainerContext -> IO Bool
+liftIO :: IO a -> ExceptT e IO a
+liftIO = ExceptT . fmap Right
+
+run ctx = liftIO . LXC.withContainer (container ctx)
+
+printLastError :: ContainerContext -> IOErr ()
+printLastError c = run c LXC.getLastError >>= liftIO . putStrLn . ("Error: " ++) . show . fmap LXC.prettyLXCError
+
+printContainerState :: ContainerContext -> IOErr ()
+printContainerState c = run c LXC.state >>= liftIO . putStrLn . ("State: " ++) . show
+
+waitForStartup :: ContainerContext -> IOErr Bool
 waitForStartup c = run c $ LXC.wait LXC.ContainerRunning (-1)
 
 launch ctx = do
@@ -30,34 +45,56 @@ launch ctx = do
   return ()
 
 cleanup ctx = do
-  run ctx LXC.stop
-  run ctx LXC.destroy
-  closeFd (stdout ctx)
-  closeFd (stdin ctx)
-  closeFd (stderr ctx)
+  run ctx $ LXC.stop >> LXC.destroy
+  --liftIO $ do
+  --  hClose (outputHandle ctx)
+  --  hClose (inputHandle ctx)
+  --  hClose (errorHandle ctx)
+  return ()
 
-runCommand :: ContainerContext -> String -> [String] -> IO (Maybe ExitCode)
-runCommand ctx cmd args =
-  run ctx $ LXC.attachRunWait attachOptions cmd (cmd : args)
+runCommand :: ContainerContext -> String -> [String] -> Result
+runCommand ctx cmd args = do
+  options <- attachOptions
+  exitState <- run ctx $ LXC.attachRunWait options cmd (cmd : args)
+  case exitState of
+    Nothing -> except . Left $ RunErr "Command not executed"
+    Just code -> liftIO $ do
+      --liftIO $ hShow ((`openFile` ReadWriteMode) . outputFile $ ctx) >>= putStrLn
+      outF <- openFile (outputFile ctx) ReadWriteMode
+      errF <- openFile (errorFile ctx) ReadWriteMode
+      (outStr, errStr) <- readContents outF errF
+      -- TODO: Handle ExitFailure
+      hClose outF
+      hClose errF
+      return (code, outStr, errStr)
   where
-    attachOptions =
-      LXC.defaultAttachOptions
-        { LXC.attachExtraEnvVars =
-            [ "PATH=$PATH:/bin:/usr/bin:/usr/local/bin"
-            ],
-          LXC.attachStdoutFD = stdout ctx,
-          LXC.attachStdinFD = stdin ctx
-        }
+    readContents outF errF = do
+      outStr <- hGetContents outF
+      errStr <- hGetContents errF
+      pure (T.pack outStr, T.pack errStr)
+    openFd f = createFile f (unionFileModes namedPipeMode stdFileMode)
+    attachOptions = do
+      outFd <- liftIO . openFd . outputFile $ ctx
+      return $
+        LXC.defaultAttachOptions
+          { LXC.attachExtraEnvVars = ["PATH=$PATH:/bin:/usr/bin:/usr/local/bin"],
+            LXC.attachStdoutFD = outFd
+            --LXC.attachStdinFD = inputHandle ctx
+          }
 
-createContext :: IO ContainerContext
-createContext = do
-  stdout <- createFile "/tmp/polykode--tmp-stdout.000" stdFileMode
-  stdin <- createFile "/tmp/polykode--tmp-stdin.000" stdFileMode
-  stderr <- createFile "/tmp/polykode--tmp-stderr.000" stdFileMode
-  return
-    ContainerContext
-      { stdout = stdout,
-        stdin = stdin,
-        stderr = stderr,
-        container = LXC.Container "testicles" Nothing
-      }
+createContext :: String -> IOErr ContainerContext
+createContext name =
+  let mode = unionFileModes namedPipeMode stdFileMode
+      filepath s = "/tmp/polykode--" ++ name ++ "--" ++ s ++ ".000"
+   in --file s = liftIO $ openFile (filepath s) ReadWriteMode
+      do
+        --outputHandle <- file "stdout"
+        --inputHandle <- file "stdin"
+        --errorHandle <- file "stderr"
+        return
+          ContainerContext
+            { outputFile = filepath "stdout",
+              inputFile = filepath "stdin",
+              errorFile = filepath "stderr",
+              container = LXC.Container name Nothing
+            }
