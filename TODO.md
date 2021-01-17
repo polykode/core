@@ -2,6 +2,7 @@
   - [X] Parse out code blocks
   - [X] Route stdout via file descriptors
   - [X] Route stderr via fd
+  - [ ] Setup unit tests for container code
   - [ ] Setup a dynamic lxc environment/image/template
   - [ ] Route stdin via fd (with custom prompts)
   - [ ] Get LXC to run code blocks serially (only js)
@@ -20,14 +21,15 @@
 
 ## Dependencies
   - [X] Markdown parser https://hackage.haskell.org/package/cmark
-  - [ ] Container - https://hackage.haskell.org/package/lxc
+  - [X] Container - https://hackage.haskell.org/package/lxc
 
 ## Metadata?
   - [ ] Dependencies/Dependency files (package.json, requirements.txt, etc)
   - [ ] Timeout (has to be less than container timeout)
 
 ## Container
-  - [ ] Execute inside lxc
+  - [X] Execute inside lxc
+  - [ ] LXC image with all languages setup
   - [ ] Run xmd server inside lxc
   - [ ] Limit interactions with the network
   - [ ] Limit total execution time (to avoid fork bombs)

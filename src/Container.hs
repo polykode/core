@@ -25,6 +25,8 @@ type IOErr = ExceptT Error IO
 
 type Result = IOErr (ExitCode, T.Text, T.Text)
 
+failWith = except . Left
+
 liftIO :: IO a -> ExceptT e IO a
 liftIO = ExceptT . fmap Right
 
@@ -44,16 +46,21 @@ ifM predicate def m = do
   check <- predicate
   if check then pure def else m
 
-failWith = except . Left
-
-containerArgs = ["-d", "ubuntu", "-r", "trusty", "-a", "amd64"]
+containerArgs =
+  [ "--path",
+    "./lxc/containers",
+    "--rootfs",
+    "./lxc/rootfs"
+    --"--metadata",
+    --"./container/metadata.yaml"
+  ]
 
 launch :: ContainerContext -> IOErr ()
 launch ctx = do
   created <-
     run ctx $
       ifM LXC.isDefined True $
-        LXC.create "download" Nothing Nothing [LXC.CreateQuiet] containerArgs
+        LXC.create "local" Nothing Nothing [LXC.CreateQuiet] containerArgs
   started <- run ctx $ ifM LXC.isRunning True (LXC.start False [])
   if not created
     then failWith $ ContainerErr "Unable to create container"
