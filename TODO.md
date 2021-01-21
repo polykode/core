@@ -2,6 +2,8 @@
   - [X] Parse out code blocks
   - [X] Route stdout via file descriptors
   - [X] Route stderr via fd
+  - [ ] Setup network management for containers
+  - [ ] Pre-bake an lxc rootfs and copy that for each container in the pool
   - [ ] Setup unit tests for container code
   - [ ] Setup a dynamic lxc environment/image/template
   - [ ] Route stdin via fd (with custom prompts)
@@ -10,13 +12,13 @@
   - [ ] Work on [modules](#modules)
 
 ## Ideas
-  - [ ] Meta/Hints parsing parsec
+  - [ ] Global metadata with comments or metadata table
+  - [ ] Block hints with comments
   - [ ] Allow disabling stdout logging
   - [ ] Executable markdown code blocks
   - [ ] Interactions between multiple languages
   - [ ] XMD server + clients (code blocks)
-  - [ ] Allow importing other markdown files
-  - [ ] Meta data syntax on top of document as comment
+  - [ ] Allow importing other markdown files as modules?
   - [ ] Caching?
 
 ## Dependencies
@@ -29,10 +31,15 @@
 
 ## Container
   - [X] Execute inside lxc
+  - [ ] Destroy and re-create images ones used `OR` standard cleanup?
   - [ ] LXC image with all languages setup
   - [ ] Run xmd server inside lxc
-  - [ ] Limit interactions with the network
-  - [ ] Limit total execution time (to avoid fork bombs)
+  - [ ] Limit interactions with the network? (Wont be neccassary if the container is destroyed after use)
+  - [ ] Mount as read-only with write access to `/home/{user}` and `/tmp` only
+  - [ ] Limit total execution time
+  - [ ] Limit max number of processes
+  - [ ] Limit max number of files created/open
+  - [ ] Create set of users with limited access
   - [ ] Create a pool of containers to optimize
 
 ## Modules
@@ -60,10 +67,3 @@
   - [ ] Rust
   - [ ] Haskell
 
-## Clients
-  - [ ] Web
-    - [ ] Syntax highlighting
-  - [ ] CLI
-    - [ ] Syntax highlighting
-
-## Maybe
