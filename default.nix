@@ -7,7 +7,7 @@ let
     haskellPackages.cabal-install
     pkgs.entr # Re-run on file change
     pkgs.lxc
-    pkgs.lxd
+    #pkgs.lxd
     pkgs.gnupg
   ];
 
@@ -18,6 +18,7 @@ let
     transformers
     text
     #lxc
+    #lxd-client
     strict
     unix
   ];
