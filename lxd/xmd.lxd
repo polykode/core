@@ -33,6 +33,13 @@ build() {
 
   COPY ./lxd/container.lxd $WORKDIR/container.lxd
 
+  local user="pk-core"
+  CREATE_USER "$user"
+
+  RUN sh -c "mkdir -m 0755 /nix && chown $user /nix"
+  RUN_AS $user 'bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon"'
+  RUN_AS $user 'bash -c "echo source ~/.nix-profile/etc/profile.d/nix.sh >> ~/.bashrc"'
+
   RUN lxd init --auto
 
   RUN run-lxd create $WORKDIR/container.lxd

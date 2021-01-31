@@ -34,6 +34,8 @@
   - [X] Execute inside lxc
   - [ ] Setup seccomp profile
   - [ ] Destroy and re-create images ones used `OR` standard cleanup?
+  - [ ] Cleanup processes - `pkill -u user --signal SIGKILL`
+  - [ ] Cleanup files - `find /home/user -user user -delete`
   - [ ] LXC image with all languages setup
   - [ ] Run xmd server inside lxc
   - [ ] Limit interactions with the network? (Wont be neccassary if the container is destroyed after use)

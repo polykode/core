@@ -5,10 +5,22 @@ CONTAINER_NAME=template-container
 WORKDIR=/opt/app
 PROFILE_NAME=profile-$CONTAINER_NAME
 
+#  limits.cpu.allowance: 30%
+#  limits.cpu.priority: 3
+#  limits.disk.priority: 3
+#  limits.memory: 30%
+#  limits.network.priority: 0
+#  limits.processes: 64
+#  limits.kernel.fsize: 200
+#  limits.kernel.locks: 100
+#  limits.kernel.nproc: 64
+#  limits.kernel.cpu: 10
+
 profile() { echo "
 config:
   security.privileged: true
   security.nesting: true
+  security.idmap.isolated: true
 description: Container profile
 devices:
   eth0:
@@ -26,10 +38,17 @@ used_by: []
 
 build() {
   RUN apt-get update
-  RUN apt-get install -y curl wget sudo bash
+  RUN apt-get install -y curl wget bash
+
+  RUN chmod 777 /tmp
+  RUN chown -R root: /
+  RUN chmod -R o-w /
+
+  local user="runner"
+  CREATE_USER $user
 }
 
 run() {
-  echo "run";
+  echo "noop";
 }
 
