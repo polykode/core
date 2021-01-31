@@ -3,12 +3,9 @@
 let
   inherit (nixpkgs) pkgs;
   systemPackages = [
-    haskellPackages.haskell-language-server
     haskellPackages.cabal-install
     pkgs.entr # Re-run on file change
-    pkgs.lxc
-    #pkgs.lxd
-    pkgs.gnupg
+    # NOTE: lxd is not included here. TODO: Maybe use lxd from nix instead of apt
   ];
 
   commonHsPackages = with haskellPackages; [
@@ -24,7 +21,7 @@ let
   ];
 in
   with haskellPackages; mkDerivation {
-    pname = "simlisp";
+    pname = "polykode";
     version = "0.1.0.0";
     src = ./.;
     isLibrary = true;

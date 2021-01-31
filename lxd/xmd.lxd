@@ -37,12 +37,15 @@ build() {
 
   # Install required programs
   RUN apt-get update
-  RUN apt-get install -y vim curl wget lxc
+  RUN apt-get install -y curl wget vim lxc
 
   # Install nix
   RUN sh -c "mkdir -m 0755 /nix && chown $user /nix || true 2>/dev/null"
   RUN_AS $user 'bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon"'
-  RUN bash -c "echo source /home/$user/.nix-profile/etc/profile.d/nix.sh >> /etc/bash.bashrc"
+  RUN_AS $user "bash -c 'echo source /home/$user/.nix-profile/etc/profile.d/nix.sh > ~/.bashrc'"
+
+  # Install base dependencies
+  RUN_AS $user "bash -c 'source ~/.bashrc; nix-shell $WORKDIR/code/shells/build.nix --run \"echo Installed\"'"
 
   # Copy run-lxd program
   COPY ./scripts/run-lxd.sh /usr/local/bin/run-lxd
