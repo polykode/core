@@ -24,12 +24,12 @@ load_profile() {
 
 run_cmd() { lxc exec $CONTAINER_NAME -- "$@"; }
 
+# Container helpers
 RUN() {
   echo "- RUN => $@";
   run_cmd "$@" || exit 1;
   echo "";
 }
-
 COPY() {
   echo "- COPY => $1 to $2";
   local targetPath=$(echo "$2" | sed "s|^\\.|$WORKDIR|g");
@@ -49,5 +49,9 @@ case "$1" in
   ;;
   build) build ;;
   run) run ;;
+  clean)
+    lxc stop $CONTAINER_NAME 2>/dev/null;
+    lxc delete $CONTAINER_NAME 2>/dev/null;
+  ;;
 esac;
 
