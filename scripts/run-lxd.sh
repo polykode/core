@@ -76,11 +76,11 @@ clean() {
 }
 
 case "$cmd" in
-  create) create ;;
-  build) build ;;
-  cb) create && build ;;
-  ccb) clean; create && build ;;
-  run) run ;;
+  create) create && echo "Created successfully" ;;
+  build) build && echo "Built successfully" ;;
+  cb) create && build && echo "Built successfully" ;;
+  ccb) clean; create && build && echo "Built successfully" ;;
+  run) run && echo "Ran successfully" ;;
   shell) lxc exec $CONTAINER_NAME -- /bin/bash ;;
   clean) clean ;;
 esac;

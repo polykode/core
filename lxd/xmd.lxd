@@ -13,19 +13,23 @@ config:
   raw.idmap: both 1000 0
 description: XMD profile
 devices:
+  port_xmd:
+    type: proxy
+    listen: tcp:0.0.0.0:3000
+    connect: tcp:127.0.0.1:3000
+  code:
+    type: disk
+    path: $WORKDIR/code
+    source: $(pwd)
+  root:
+    type: disk
+    path: /
+    pool: local
   eth0:
+    type: nic
     name: eth0
     nictype: bridged
     parent: lxdbr0
-    type: nic
-  code:
-    path: $WORKDIR/code
-    source: $(pwd)
-    type: disk
-  root:
-    path: /
-    pool: local
-    type: disk
 name: $PROFILE_NAME
 used_by: []
 "; }
