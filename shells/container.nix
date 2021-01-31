@@ -10,6 +10,8 @@ let
     iproute
     bridge-utils
     dnsmasq
+    libpam-wrapper
+    shadow
 
     # Work
     man
