@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+IMAGE=ubuntu:20.04
+CONTAINER_NAME=test
+WORKDIR=/opt/app
+PROFILE_NAME=profile-$CONTAINER_NAME
+
+profile() { echo "
+config:
+  security.privileged: false
+  security.nesting: true
+description: XMD profile
+devices:
+  eth0:
+    name: eth0
+    nictype: bridged
+    parent: lxdbr0
+    type: nic
+  root:
+    path: /
+    pool: local
+    type: disk
+name: $PROFILE_NAME
+used_by: []
+"; }
+
+build() {
+  RUN apt-get update
+  RUN apt-get install -y vim curl wget sudo lxc lxc-templates
+
+  COPY ./scripts/run-lxd.sh /usr/local/bin/run-lxd
+  RUN chmod +x /usr/local/bin/run-lxd
+
+  COPY ./lxd/container.lxd $WORKDIR/container.lxd
+
+  RUN lxd init --auto
+
+  RUN run-lxd create $WORKDIR/container.lxd
+  RUN run-lxd build $WORKDIR/container.lxd
+}
+
+run() {
+  echo "run";
+}
+

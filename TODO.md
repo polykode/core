@@ -2,8 +2,8 @@
   - [X] Parse out code blocks
   - [X] Route stdout via file descriptors
   - [X] Route stderr via fd
-  - [ ] Setup network management for containers
-  - [ ] Pre-bake an lxc rootfs and copy that for each container in the pool
+  - [X] Fix privileged container issue
+  - [X] Setup network management for containers
   - [ ] Setup unit tests for container code
   - [ ] Setup a dynamic lxc environment/image/template
   - [ ] Route stdin via fd (with custom prompts)
@@ -12,6 +12,7 @@
   - [ ] Work on [modules](#modules)
 
 ## Ideas
+  - [ ] Isolated networks? (docker . webserver) <-> (docker . xmd server <-> (lxc . pool)))
   - [ ] Global metadata with comments or metadata table
   - [ ] Block hints with comments
   - [ ] Allow disabling stdout logging
@@ -31,6 +32,7 @@
 
 ## Container
   - [X] Execute inside lxc
+  - [ ] Setup seccomp profile
   - [ ] Destroy and re-create images ones used `OR` standard cleanup?
   - [ ] LXC image with all languages setup
   - [ ] Run xmd server inside lxc

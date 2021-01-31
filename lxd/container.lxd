@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+IMAGE=ubuntu:20.04
+CONTAINER_NAME=template-container
+WORKDIR=/opt/app
+PROFILE_NAME=profile-$CONTAINER_NAME
+
+profile() { echo "
+config:
+  security.privileged: true
+  security.nesting: true
+description: Container profile
+devices:
+  eth0:
+    name: eth0
+    nictype: bridged
+    parent: lxdbr0
+    type: nic
+  root:
+    path: /
+    pool: default
+    type: disk
+name: $PROFILE_NAME
+used_by: []
+"; }
+
+build() {
+  RUN apt-get update
+  RUN apt-get install -y curl wget sudo bash
+}
+
+run() {
+  echo "run";
+}
+
