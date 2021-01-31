@@ -2,8 +2,11 @@
 
 [[ $# != 2 ]] && echo "Invalid set of arguments" && exit 1;
 
-cmd="$1";
-config="$2";
+cmd="$2";
+config="$1";
+build_type="$3";
+
+prod() { [[ "$build_type" == "prod" ]]; }
 
 IMAGE=ubuntu:20.04
 CONTAINER_NAME=default-container
@@ -27,6 +30,7 @@ load_profile() {
 
 run_cmd() { lxc exec $CONTAINER_NAME -- "$@"; }
 
+### Commands {{{
 RUN_AS() {
   local user=$1; shift;
   RUN su "$user" -c "$1";
@@ -47,6 +51,7 @@ RUN() {
   run_cmd "$@" || exit 1
   echo "";
 }
+
 COPY() {
   echo "- COPY => $1 to $2";
   local targetPath=$(echo "$2" | sed "s|^\\.|$WORKDIR|g");
@@ -54,22 +59,29 @@ COPY() {
   lxc file push -p $1 ${CONTAINER_NAME}${targetPath} || exit 1;
   echo "";
 }
+### }}}
+
+
+create() {
+  load_profile;
+  lxc launch $IMAGE $CONTAINER_NAME --profile $PROFILE_NAME;
+  sleep 2;
+  run_cmd mkdir -p $WORKDIR || true;
+  echo "";
+}
+
+clean() {
+  lxc stop $CONTAINER_NAME 2>/dev/null;
+  lxc delete $CONTAINER_NAME 2>/dev/null;
+}
 
 case "$cmd" in
-  create)
-    load_profile;
-    lxc stop $CONTAINER_NAME 2>/dev/null;
-    #lxc delete $CONTAINER_NAME 2>/dev/null;
-    lxc launch $IMAGE $CONTAINER_NAME --profile $PROFILE_NAME;
-    sleep 2;
-    run_cmd mkdir -p $WORKDIR || true;
-    echo "";
-  ;;
+  create) create ;;
   build) build ;;
+  cb) create && build ;;
+  ccb) clean; create && build ;;
   run) run ;;
-  clean)
-    lxc stop $CONTAINER_NAME 2>/dev/null;
-    lxc delete $CONTAINER_NAME 2>/dev/null;
-  ;;
+  shell) lxc exec $CONTAINER_NAME -- /bin/bash ;;
+  clean) clean ;;
 esac;
 

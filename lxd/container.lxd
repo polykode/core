@@ -41,8 +41,8 @@ build() {
   RUN apt-get install -y curl wget bash
 
   RUN chmod 777 /tmp
-  RUN chown -R root: /
-  RUN chmod -R o-w /
+  #RUN chown -R root: /
+  #RUN chmod -R o-w /
 
   local user="runner"
   CREATE_USER $user

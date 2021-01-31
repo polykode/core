@@ -2,13 +2,15 @@
 
 IMAGE=ubuntu:20.04
 CONTAINER_NAME=test
-WORKDIR=/opt/app
+WORKDIR=/opt
 PROFILE_NAME=profile-$CONTAINER_NAME
 
+# TODO: On prod, instead of mounting, copy files
 profile() { echo "
 config:
   security.privileged: false
   security.nesting: true
+  raw.idmap: both 1000 0
 description: XMD profile
 devices:
   eth0:
@@ -16,6 +18,10 @@ devices:
     nictype: bridged
     parent: lxdbr0
     type: nic
+  code:
+    path: $WORKDIR/code
+    source: $(pwd)
+    type: disk
   root:
     path: /
     pool: local
@@ -25,25 +31,29 @@ used_by: []
 "; }
 
 build() {
-  RUN apt-get update
-  RUN apt-get install -y vim curl wget sudo lxc lxc-templates
-
-  COPY ./scripts/run-lxd.sh /usr/local/bin/run-lxd
-  RUN chmod +x /usr/local/bin/run-lxd
-
-  COPY ./lxd/container.lxd $WORKDIR/container.lxd
-
+  # User setup
   local user="pk-core"
   CREATE_USER "$user"
 
-  RUN sh -c "mkdir -m 0755 /nix && chown $user /nix"
+  # Install required programs
+  RUN apt-get update
+  RUN apt-get install -y vim curl wget lxc
+
+  # Install nix
+  RUN sh -c "mkdir -m 0755 /nix && chown $user /nix || true 2>/dev/null"
   RUN_AS $user 'bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon"'
-  RUN_AS $user 'bash -c "echo source ~/.nix-profile/etc/profile.d/nix.sh >> ~/.bashrc"'
+  RUN bash -c "echo source /home/$user/.nix-profile/etc/profile.d/nix.sh >> /etc/bash.bashrc"
+
+  # Copy run-lxd program
+  COPY ./scripts/run-lxd.sh /usr/local/bin/run-lxd
+  RUN chmod +x /usr/local/bin/run-lxd
 
   RUN lxd init --auto
 
-  RUN run-lxd create $WORKDIR/container.lxd
-  RUN run-lxd build $WORKDIR/container.lxd
+  # Setup sandbox template container
+  local lxd_file="${WORKDIR}/code/lxd/container.lxd";
+  RUN run-lxd $lxd_file create
+  RUN run-lxd $lxd_file build
 }
 
 run() {
