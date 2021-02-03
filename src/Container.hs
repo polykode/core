@@ -1,124 +1,92 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module Container where
 
---import Control.Monad.Trans.State
-
-import Control.Concurrent
-import Control.Monad.Trans.Except
-import qualified Data.Text as T
+import Control.Algebra
+import Control.Effect.Throw
+import Control.Monad (void)
+import Control.Monad.IO.Class
+import Data.Kind (Type)
 import GHC.IO.Exception
-import System.IO hiding (hGetContents)
-import System.IO.Strict (hGetContents)
-import qualified System.LXC as LXC
-import System.Posix.Files
-import System.Posix.IO
+import System.Process
 
-data ContainerContext = ContainerContext
-  { outputFile :: FilePath,
-    inputFile :: FilePath,
-    errorFile :: FilePath,
-    container :: LXC.Container
+type Result = (ExitCode, String, String)
+
+newtype Container = Container
+  { name :: String
   }
+  deriving (Show)
 
-data Error = ContainerErr String | RunErr String deriving (Show)
+data Error = ContainerErr Int String | RunErr String deriving (Show)
 
-type IOErr = ExceptT Error IO
+data LxcEff (m :: Type -> Type) k where
+  Start :: Container -> LxcEff m (Either Error ())
+  Stop :: Container -> LxcEff m (Either Error ())
+  Delete :: Container -> LxcEff m (Either Error ())
+  Copy :: Container -> String -> LxcEff m (Either Error Container)
+  Exec :: Container -> [String] -> LxcEff m Result
 
-type Result = IOErr (ExitCode, T.Text, T.Text)
+type LxcIOErr = LxcEff :+: Throw Error
 
-failWith = except . Left
+start :: Has LxcIOErr sig m => Container -> m ()
+start c = send (Start c) >>= liftEither
 
-liftIO :: IO a -> ExceptT e IO a
-liftIO = ExceptT . fmap Right
+stop :: Has LxcIOErr sig m => Container -> m ()
+stop c = send (Stop c) >>= liftEither
 
-run ctx = liftIO . LXC.withContainer (container ctx)
+delete :: Has LxcIOErr sig m => Container -> m ()
+delete c = send (Delete c) >>= liftEither
 
-printLastError :: ContainerContext -> IOErr ()
-printLastError c = run c LXC.getLastError >>= liftIO . putStrLn . ("Error: " ++) . show . fmap LXC.prettyLXCError
+copy :: Has LxcIOErr sig m => Container -> String -> m Container
+copy c name = send (Copy c name) >>= liftEither
 
-printContainerState :: ContainerContext -> IOErr ()
-printContainerState c = run c LXC.state >>= liftIO . putStrLn . ("State: " ++) . show
+exec :: Has LxcIOErr sig m => Container -> [String] -> m Result
+exec c = send . Exec c
 
-waitForStartup :: ContainerContext -> IOErr Bool
-waitForStartup c = run c $ LXC.wait LXC.ContainerRunning (-1)
+runLxcCommand :: [String] -> IO Result
+runLxcCommand args = readProcessWithExitCode "lxc" args ""
 
-ifM :: (Monad m) => m Bool -> a -> m a -> m a
-ifM predicate def m = do
-  check <- predicate
-  if check then pure def else m
+--- Algebra definitions below
 
-containerArgs =
-  [ "--path",
-    "./lxc/containers",
-    "--rootfs",
-    "./lxc/rootfs"
-    --"--metadata",
-    --"./container/metadata.yaml"
-  ]
+handleResult :: (ExitCode, String, String) -> Either Error String
+handleResult (status, stdout, stderr) = case status of
+  ExitSuccess -> return stdout
+  ExitFailure code -> Left $ ContainerErr code stderr
 
-launch :: ContainerContext -> IOErr ()
-launch ctx = do
-  created <-
-    run ctx $
-      ifM LXC.isDefined True $
-        LXC.create "local" Nothing Nothing [LXC.CreateQuiet] containerArgs
-  started <- run ctx $ ifM LXC.isRunning True (LXC.start False [])
-  if not created
-    then failWith $ ContainerErr "Unable to create container"
-    else
-      if not started
-        then failWith $ ContainerErr "Unable to start container"
-        else pure ()
+lxcStart :: Container -> IO (Either Error ())
+lxcStart c =
+  void . handleResult <$> runLxcCommand ["start", name c]
 
-cleanup :: ContainerContext -> IOErr ()
-cleanup ctx = do
-  liftIO . putStrLn $ "Cleanup crew has arrived"
-  run ctx $ LXC.stop >> LXC.destroy
-  return ()
+lxcCopy :: Container -> String -> IO (Either Error Container)
+lxcCopy c targetContainer =
+  fmap (const (Container targetContainer)) . handleResult <$> runLxcCommand ["copy", name c, targetContainer]
 
-runCommand :: ContainerContext -> String -> [String] -> Result
-runCommand ctx cmd args = do
-  options <- attachOptions
-  exitState <- run ctx $ LXC.attachRunWait options cmd (cmd : args)
-  case exitState of
-    Nothing -> except . Left $ RunErr "Command not executed"
-    Just code -> liftIO $ do
-      outF <- openFile (outputFile ctx) ReadWriteMode
-      errF <- openFile (errorFile ctx) ReadWriteMode
-      (outStr, errStr) <- readContents outF errF
-      -- TODO: Handle ExitFailure
-      hClose outF
-      hClose errF
-      return (code, outStr, errStr)
-  where
-    readContents outF errF = do
-      outStr <- hGetContents outF
-      errStr <- hGetContents errF
-      pure (T.pack outStr, T.pack errStr)
-    openFd f = createFile f (unionFileModes namedPipeMode stdFileMode)
-    attachOptions = do
-      outFd <- liftIO . openFd . outputFile $ ctx
-      errFd <- liftIO . openFd . errorFile $ ctx
-      return $
-        LXC.defaultAttachOptions
-          { LXC.attachStdoutFD = outFd,
-            LXC.attachStderrFD = errFd,
-            LXC.attachEnvPolicy = LXC.AttachClearEnv,
-            LXC.attachExtraEnvVars = ["PATH=$PATH:/bin:/usr/bin:/usr/local/bin"]
-          }
+lxcStop :: Container -> IO (Either Error ())
+lxcStop c =
+  void . handleResult <$> runLxcCommand ["stop", name c]
 
-createContext :: String -> IOErr ContainerContext
-createContext name =
-  let mode = unionFileModes namedPipeMode stdFileMode
-      filepath s = "/tmp/polykode--" ++ name ++ "--" ++ s ++ ".000"
-   in --file s = liftIO $ openFile (filepath s) ReadWriteMode
-      do
-        --outputHandle <- file "stdout"
-        --inputHandle <- file "stdin"
-        --errorHandle <- file "stderr"
-        return
-          ContainerContext
-            { outputFile = filepath "stdout",
-              inputFile = filepath "stdin",
-              errorFile = filepath "stderr",
-              container = LXC.Container name Nothing
-            }
+lxcDelete :: Container -> IO (Either Error ())
+lxcDelete c =
+  void . handleResult <$> runLxcCommand ["delete", name c]
+
+lxcExec :: Container -> [String] -> IO Result
+lxcExec c command = runLxcCommand $ ["exec", name c, "--"] ++ command
+
+newtype LxcIOC m a = LxcIOC {runLxcIO :: m a}
+  deriving (Applicative, Functor, Monad, MonadIO)
+
+instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
+  alg hdl sig ctx = case sig of
+    L (Start c) -> (<$ ctx) <$> liftIO (lxcStart c)
+    L (Stop c) -> (<$ ctx) <$> liftIO (lxcStop c)
+    L (Delete c) -> (<$ ctx) <$> liftIO (lxcDelete c)
+    L (Exec c cmd) -> (<$ ctx) <$> liftIO (lxcExec c cmd)
+    L (Copy c name) -> (<$ ctx) <$> liftIO (lxcCopy c name)
+    R other -> LxcIOC (alg (runLxcIO . hdl) other ctx)

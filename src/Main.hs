@@ -1,33 +1,61 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Main where
 
---import Evaluator
-
 import Container
-import Control.Applicative
+import Control.Algebra
+import Control.Carrier.Throw.Either
+import Control.Effect.Throw
+import Control.Monad (void)
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Except
-import Evaluator
+import Data.Kind (Type)
+import Debug.Trace
+import GHC.IO.Exception
+import System.Process
+import Utils
 
-runIOErr :: a -> IOErr a -> IO a
-runIOErr def m = do
-  runExceptT m >>= \case
-    Right x -> pure x
-    Left e -> do
-      putStrLn "Fuck"
-      print e
-      pure def
+-- Template container
+template = Container "template-container"
 
-runInContainer fn container =
-  runIOErr () (fn container) >> runIOErr () (cleanup container)
+createContainer :: Has (LxcEff :+: Throw Error) sig m => String -> m Container
+createContainer name = Container name <$ (copy template name >>= start)
 
-loadMdFile container = do
-  mdStr <- liftIO $ readFile "./examples/serial.md"
-  result <- evaluate container mdStr
-  liftIO $ print result
-  return ()
+cleanupContainer :: Has (LxcEff :+: Throw Error) sig m => Container -> m ()
+cleanupContainer c = stop c >> delete c
 
-main :: IO ()
-main = runIOErr () $ do
-  container <- createContext "fuckoff"
-  liftIO $ runInContainer loadMdFile container
+toContainerName n = "container--" ++ show n
+
+createContainerPool :: Has (LxcEff :+: Throw Error) sig m => Int -> m [Container]
+createContainerPool count = concatM . map (createContainer . toContainerName) $ [1 .. count - 1]
+
+cleanContainerPool :: Has (LxcEff :+: Throw Error) sig m => [Container] -> m ()
+cleanContainerPool = void . concatM . map cleanupContainer
+
+sayHelloEff :: Has (LxcEff :+: Throw Error) sig m => m Result
+sayHelloEff = do
+  trace "Creating container pool" $ pure ()
+  pool <- createContainerPool 4
+  c <- pure . head $ pool
+
+  -- Running
+  trace "Executing" $ pure ()
+  result <- exec c ["echo", "Hello", "world!"]
+
+  -- Cleanup
+  trace "Cleanup" $ pure ()
+  cleanContainerPool pool
+
+  return result
+
+sayHello :: IO (Either Error Result)
+sayHello = runLxcIO (runThrow sayHelloEff)
+
+main = sayHello >>= print

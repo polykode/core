@@ -19,27 +19,29 @@ data ResultNode
 --show nodeType ++ ": [ " ++ show cResults ++ "] " --  ++ "(" ++ show rest ++ ")"
 --show (EvalNode node result) = show result
 
-executeBashCommand container code = do
-  printContainerState container
-  waitForStartup container
-  (exitCode, output, err) <- runCommand container "sh" ["-c", code]
-  liftIO $ do
-    putStrLn $ "Output: " ++ show output
-    putStrLn $ "Err: " ++ show err
-  return output
+evaluateMd = 5
 
-evaluateMd :: ContainerContext -> [XMDNode] -> IOErr [ResultNode]
-evaluateMd container [] = return []
-evaluateMd container (hd : lst) = case hd of
-  Code lang code node -> do
-    eval <- (`EvalNode` node) <$> executeBashCommand container (T.unpack code)
-    rest <- evaluateMd container lst
-    return $ eval : rest
-  RawNode node xmdNodes -> do
-    eval <- (`RenderNode` node) <$> evaluateMd container xmdNodes
-    rest <- evaluateMd container lst
-    return $ eval : rest
+--executeBashCommand container code = do
+  --printContainerState container
+  --waitForStartup container
+  --(exitCode, output, err) <- runCommand container "sh" ["-c", code]
+  --liftIO $ do
+    --putStrLn $ "Output: " ++ show output
+    --putStrLn $ "Err: " ++ show err
+  --return output
 
-evaluate container mdStr = do
-  launch container
-  evaluateMd container . parse $ mdStr
+--evaluateMd :: ContainerContext -> [XMDNode] -> IOErr [ResultNode]
+--evaluateMd container [] = return []
+--evaluateMd container (hd : lst) = case hd of
+  --Code lang code node -> do
+    --eval <- (`EvalNode` node) <$> executeBashCommand container (T.unpack code)
+    --rest <- evaluateMd container lst
+    --return $ eval : rest
+  --RawNode node xmdNodes -> do
+    --eval <- (`RenderNode` node) <$> evaluateMd container xmdNodes
+    --rest <- evaluateMd container lst
+    --return $ eval : rest
+
+--evaluate container mdStr = do
+  --launch container
+  --evaluateMd container . parse $ mdStr
