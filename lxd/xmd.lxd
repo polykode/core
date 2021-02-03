@@ -34,22 +34,25 @@ name: $PROFILE_NAME
 used_by: []
 "; }
 
+user="pk-core"
+
 build() {
   # User setup
-  local user="pk-core"
   CREATE_USER "$user"
 
   # Install required programs
   RUN apt-get update
-  RUN apt-get install -y curl wget vim lxc
-
-  # Install nix
-  RUN sh -c "mkdir -m 0755 /nix && chown $user /nix || true 2>/dev/null"
-  RUN_AS $user 'bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon"'
-  RUN_AS $user "bash -c 'echo source /home/$user/.nix-profile/etc/profile.d/nix.sh > ~/.bashrc'"
-
-  # Install base dependencies
-  RUN_AS $user "bash -c 'source ~/.bashrc; nix-shell $WORKDIR/code/shells/build.nix --run \"echo Installed\"'"
+  RUN apt-get install -y \
+    curl \
+    wget \
+    vim \
+    lxc \
+    build-essential \
+    zlib1g \
+    zlib1g-dev \
+    ghc \
+    cabal-install \
+  ;
 
   # Copy run-lxd program
   COPY ./scripts/run-lxd.sh /usr/local/bin/run-lxd
@@ -61,6 +64,13 @@ build() {
   local lxd_file="${WORKDIR}/code/lxd/container.lxd";
   RUN run-lxd $lxd_file create
   RUN run-lxd $lxd_file build
+
+  RUN cabal update
+
+  RUN sh -c "cd $WORKDIR/code && cabal v2-build"
+
+  # iptables -t nat -A PREROUTING -p tcp -i eth0 --dport 8080 -j DNAT --to-destination 10.218.5.81:30386
+
 }
 
 run() {

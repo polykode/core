@@ -15,10 +15,11 @@ common lib
     raw-strings-qq,
     transformers,
     text,
-    lxc,
     unix,
+    process,
     strict,
-    base >=4.14 && <4.15
+    fused-effects,
+    base
   default-language:    Haskell2010
 
 Test-Suite test
@@ -33,7 +34,7 @@ Test-Suite test
 library library
   import: lib
   exposed-modules:
-    Parser
+    Utils
 
 executable polykode
   import: lib
