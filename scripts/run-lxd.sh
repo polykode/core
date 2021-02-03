@@ -70,8 +70,12 @@ create() {
   echo "";
 }
 
-clean() {
+stop_container() {
   lxc stop $CONTAINER_NAME 2>/dev/null;
+}
+
+clean() {
+  stop_container;
   lxc delete $CONTAINER_NAME 2>/dev/null;
 }
 
@@ -82,6 +86,7 @@ case "$cmd" in
   ccb) clean; create && build && echo "Built successfully" ;;
   run) run && echo "Ran successfully" ;;
   shell) lxc exec $CONTAINER_NAME -- /bin/bash ;;
+  stop) stop_container ;;
   clean) clean ;;
 esac;
 

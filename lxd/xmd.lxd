@@ -64,6 +64,7 @@ build() {
   local lxd_file="${WORKDIR}/code/lxd/container.lxd";
   RUN run-lxd $lxd_file create
   RUN run-lxd $lxd_file build
+  RUN run-lxd $lxd_file stop
 
   RUN cabal update
 
