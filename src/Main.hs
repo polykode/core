@@ -26,7 +26,7 @@ sayHelloEff = do
 
   -- Running
   trace "Executing" $ pure ()
-  result <- executeCommand pool ["echo", "Hello", "world!"]
+  result <- exec (head pool) ["echo", "Hello", "world!"]
 
   -- Cleanup
   trace "Cleanup" $ pure ()

@@ -23,6 +23,3 @@ createContainerPool count = concatM . map (createContainer . toContainerName) $ 
 
 cleanContainerPool :: Has LxcIOErr sig m => ContainerPool -> m ()
 cleanContainerPool = void . concatM . map cleanupContainer
-
-executeCommand :: Has LxcIOErr sig m => ContainerPool -> [String] -> m Result
-executeCommand pool = exec (head pool)
