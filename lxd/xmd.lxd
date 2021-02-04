@@ -52,6 +52,7 @@ build() {
     zlib1g-dev \
     ghc \
     cabal-install \
+    entr \
   ;
 
   # Copy run-lxd program

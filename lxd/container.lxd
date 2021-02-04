@@ -38,7 +38,12 @@ used_by: []
 
 build() {
   RUN apt-get update
-  RUN apt-get install -y curl wget bash
+  RUN apt-get install -y \
+    curl \
+    wget \
+    bash \
+    nodejs \
+  ;
 
   RUN chmod 777 /tmp
   #RUN chown -R root: /
