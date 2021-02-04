@@ -11,7 +11,13 @@ type ContainerPool = [Container]
 template = Container "template-container"
 
 createContainer :: Has LxcIOErr sig m => String -> m Container
-createContainer name = Container name <$ (copy template name >>= start)
+createContainer name = do
+  stat <- info $ Container name
+  -- Only copy if it doesn't exist
+  case stat of
+    Left _ -> copy template name >>= start
+    _ -> pure ()
+  return $ Container name
 
 cleanupContainer :: Has LxcIOErr sig m => Container -> m ()
 cleanupContainer c = stop c >> delete c

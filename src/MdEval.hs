@@ -14,15 +14,12 @@ type EvaluationResult = Result
 data ResultNode
   = RenderNode Node [ResultNode]
   | EvalNode Node EvaluationResult
-  deriving (Show, Eq)
+  deriving (Eq)
 
---instance Show ResultNode where
---show (RenderNode (Node _ nodeType cNodes) cResults) =
---show nodeType ++ ": [ " ++ show cResults ++ "] " --  ++ "(" ++ show rest ++ ")"
---show (EvalNode node result) = show result
-
---executeBashCommand :: Has LxcIOErr sig m => Container -> String -> m Result
---executeBashCommand container code = exec container ["bash", "-c", code]
+instance Show ResultNode where
+  show (RenderNode (Node _ nodeType cNodes) cResults) =
+    show nodeType ++ ": [ " ++ show cResults ++ "] " -- ++ "(" ++ show rest ++ ")"
+  show (EvalNode node result) = show node ++ "\n\n--- Result ---\n" ++ show result
 
 evaluateMd :: Has LxcIOErr sig m => Container -> [XMDNode] -> m [ResultNode]
 evaluateMd container [] = return []

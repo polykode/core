@@ -31,8 +31,8 @@ mdxEff mdStr = do
   result <- evaluateMd (head pool) (parse mdStr)
 
   -- Cleanup
-  trace "Cleanup" $ pure ()
-  cleanContainerPool pool
+  trace "No cleanup" $ pure ()
+  --cleanContainerPool pool
 
   return result
 

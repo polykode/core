@@ -8,7 +8,10 @@ import Container.Eff
 import Control.Algebra
 import GHC.IO.Exception
 
-data Code = Bash String | NodeJs String deriving (Show)
+data Code
+  = Bash String
+  | NodeJs String
+  deriving (Show)
 
 toCode lang code = case lang of
   "bash" -> Bash code

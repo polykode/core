@@ -25,6 +25,7 @@ data LxcEff (m :: Type -> Type) k where
   Delete :: Container -> LxcEff m (Either Error ())
   Copy :: Container -> String -> LxcEff m (Either Error Container)
   Exec :: Container -> [String] -> LxcEff m Result
+  Info :: Container -> LxcEff m (Either Error String)
 
 type LxcIOErr = LxcEff :+: Throw Error
 
@@ -36,6 +37,9 @@ stop c = send (Stop c) >>= liftEither
 
 delete :: Has LxcIOErr sig m => Container -> m ()
 delete c = send (Delete c) >>= liftEither
+
+info :: Has LxcIOErr sig m => Container -> m (Either Error String)
+info = send . Info
 
 copy :: Has LxcIOErr sig m => Container -> String -> m Container
 copy c name = send (Copy c name) >>= liftEither

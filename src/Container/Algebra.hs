@@ -55,6 +55,9 @@ lxcDelete c =
 lxcExec :: Container -> [String] -> IO Result
 lxcExec c command = runLxcCommand $ ["exec", name c, "--"] ++ command
 
+lxcInfo :: Container -> IO (Either Error String)
+lxcInfo c = handleResult <$> runLxcCommand ["info", name c]
+
 newtype LxcIOC m a = LxcIOC {runLxcIO :: m a}
   deriving (Applicative, Functor, Monad, MonadIO)
 
@@ -65,4 +68,5 @@ instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
     L (Delete c) -> (<$ ctx) <$> liftIO (lxcDelete c)
     L (Exec c cmd) -> (<$ ctx) <$> liftIO (lxcExec c cmd)
     L (Copy c name) -> (<$ ctx) <$> liftIO (lxcCopy c name)
+    L (Info c) -> (<$ ctx) <$> liftIO (lxcInfo c)
     R other -> LxcIOC (alg (runLxcIO . hdl) other ctx)
