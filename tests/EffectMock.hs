@@ -26,6 +26,7 @@ instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
     L (Delete c) -> (<$ ctx) <$> liftIO (pure $ Right ())
     L (Exec c cmd) -> (<$ ctx) <$> liftIO (pure (ExitSuccess, "Executing (" ++ name c ++ "): " ++ unwords cmd, ""))
     L (Copy c name) -> (<$ ctx) <$> liftIO (pure . Right . Container . ("copied:" ++) $ name)
+    L (Info c) -> (<$ ctx) <$> liftIO (pure . Right $ "info")
     R other -> LxcIOC (alg (runMockLxcIO . hdl) other ctx)
 
 runMock = runMockLxcIO . runThrow
