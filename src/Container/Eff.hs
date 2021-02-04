@@ -14,9 +14,10 @@ type Result = (ExitCode, String, String)
 newtype Container = Container
   { name :: String
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
-data Error = ContainerErr Int String | RunErr String deriving (Show)
+data Error = ContainerErr Int String | RunErr String
+  deriving (Show, Eq)
 
 data LxcEff (m :: Type -> Type) k where
   Start :: Container -> LxcEff m (Either Error ())

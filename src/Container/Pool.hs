@@ -5,6 +5,8 @@ import Control.Algebra
 import Control.Monad (void)
 import Utils
 
+type ContainerPool = [Container]
+
 -- Template container
 template = Container "template-container"
 
@@ -16,8 +18,11 @@ cleanupContainer c = stop c >> delete c
 
 toContainerName n = "container--" ++ show n
 
-createContainerPool :: Has LxcIOErr sig m => Int -> m [Container]
-createContainerPool count = concatM . map (createContainer . toContainerName) $ [1 .. count - 1]
+createContainerPool :: Has LxcIOErr sig m => Int -> m ContainerPool
+createContainerPool count = concatM . map (createContainer . toContainerName) $ [1 .. count]
 
-cleanContainerPool :: Has LxcIOErr sig m => [Container] -> m ()
+cleanContainerPool :: Has LxcIOErr sig m => ContainerPool -> m ()
 cleanContainerPool = void . concatM . map cleanupContainer
+
+executeCommand :: Has LxcIOErr sig m => ContainerPool -> [String] -> m Result
+executeCommand pool = exec (head pool)

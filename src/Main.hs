@@ -22,12 +22,11 @@ import Utils
 sayHelloEff :: Has (LxcEff :+: Throw Error) sig m => m Result
 sayHelloEff = do
   trace "Creating container pool" $ pure ()
-  pool <- createContainerPool 4
-  c <- pure . head $ pool
+  pool <- createContainerPool 2
 
   -- Running
   trace "Executing" $ pure ()
-  result <- exec c ["echo", "Hello", "world!"]
+  result <- executeCommand pool ["echo", "Hello", "world!"]
 
   -- Cleanup
   trace "Cleanup" $ pure ()

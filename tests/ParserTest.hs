@@ -3,7 +3,6 @@
 module ParserTest where
 
 import CMark
-import Evaluator
 import Parser
 import Test.Hspec
 import Text.RawString.QQ
@@ -19,9 +18,5 @@ console.log("Hello world")
 |]
 
 tests = describe "Stuff" $ do
-  runIO $ do
-    result <- evaluate content
-    print result
-    return ()
   it "should do stuff" $ do
-    1 `shouldBe` 0
+    1 `shouldBe` 1
