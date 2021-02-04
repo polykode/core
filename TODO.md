@@ -5,11 +5,10 @@
   - [X] Fix privileged container issue
   - [X] Setup network management for containers
   - [ ] Setup unit tests for container code
-  - [ ] Setup a dynamic lxc environment/image/template
-  - [ ] Route stdin via fd (with custom prompts)
   - [ ] Get LXC to run code blocks serially (only js)
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Work on [modules](#modules)
+  - [ ] Parallelize container pool creation
 
 ## Ideas
   - [ ] Isolated networks? (docker . webserver) <-> (docker . xmd server <-> (lxc . pool)))

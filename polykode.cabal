@@ -13,7 +13,6 @@ common lib
   build-depends:
     cmark,
     raw-strings-qq,
-    transformers,
     text,
     unix,
     process,
