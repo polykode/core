@@ -3,6 +3,7 @@
 module MdEval where
 
 import CMark
+import CodeExecutor
 import Container.Eff
 import Control.Algebra
 import qualified Data.Text as T
@@ -20,14 +21,14 @@ data ResultNode
 --show nodeType ++ ": [ " ++ show cResults ++ "] " --  ++ "(" ++ show rest ++ ")"
 --show (EvalNode node result) = show result
 
-executeBashCommand :: Has LxcIOErr sig m => Container -> String -> m Result
-executeBashCommand container code = exec container ["bash", "-c", code]
+--executeBashCommand :: Has LxcIOErr sig m => Container -> String -> m Result
+--executeBashCommand container code = exec container ["bash", "-c", code]
 
 evaluateMd :: Has LxcIOErr sig m => Container -> [XMDNode] -> m [ResultNode]
 evaluateMd container [] = return []
 evaluateMd container (hd : lst) = case hd of
   Code lang code node -> do
-    eval <- EvalNode node <$> executeBashCommand container (T.unpack code)
+    eval <- EvalNode node <$> executeCode container (toCode lang code)
     rest <- evaluateMd container lst
     return $ eval : rest
   RawNode node xmdNodes -> do

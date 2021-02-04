@@ -9,7 +9,7 @@ import Prelude
 -- TODO: Actual meta data please
 data XMDNode
   = MetaData String
-  | Code String Text.Text Node
+  | Code String String Node
   | RawNode Node [XMDNode]
   deriving (Show, Eq)
 
@@ -20,7 +20,7 @@ wrapNodes acc = \case
   [] -> acc
   ((Node _ (CODE_BLOCK lang code) _) : rest) -> wrapNodes (acc ++ newNodes) rest
     where
-      newNodes = [Code (Text.unpack lang) code cmarkNode]
+      newNodes = [Code (Text.unpack lang) (Text.unpack code) cmarkNode]
       cmarkNode = Node Nothing (CODE_BLOCK lang code) []
   ((Node _ nodeType nodes) : rest) -> wrapNodes (acc ++ newNodes) rest
     where

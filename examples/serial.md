@@ -2,14 +2,11 @@
 Content for stuffff
 
 ```js
-echo "fuck you"
+console.log("fuck you", 52 ** 2)
 ```
 
-```js
-echo "this kinda slapps broooo"
+```bash
+val=200
+echo "value $val"
 echo "fuck you"
-echo "foobarooo"
-echo -n "foobarooo"
-echo -n "foobarooo"
-echo "foobarooo"
 ```

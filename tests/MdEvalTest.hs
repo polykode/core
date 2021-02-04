@@ -19,8 +19,13 @@ content =
 # Hello
 params
 
+```bash
+var=10;
+echo "Hello" $var;
+```
+
 ```js
-console.log("Hello world", { a: 'b' })
+console.log('wow')
 ```
 |]
 
@@ -43,6 +48,9 @@ tests = describe "MdEval" $ do
               RenderNode emptyNode [RenderNode emptyNode []],
               EvalNode
                 emptyNode
-                (ExitSuccess, "Executing (hello): bash -c console.log(\"Hello world\", { a: 'b' })\n", "")
+                (ExitSuccess, "Executing (hello): bash -c var=10;\necho \"Hello\" $var;\n", ""),
+              EvalNode
+                emptyNode
+                (ExitSuccess, "Executing (hello): node -e console.log('wow')\n", "")
             ]
         ]

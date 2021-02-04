@@ -17,16 +17,18 @@ import Control.Carrier.Throw.Either
 import Control.Monad (void)
 import Control.Monad.IO.Class (liftIO)
 import Debug.Trace
+import MdEval
+import Parser
 import Utils
 
-sayHelloEff :: Has (LxcEff :+: Throw Error) sig m => m Result
-sayHelloEff = do
+mdxEff :: Has (LxcEff :+: Throw Error) sig m => String -> m [ResultNode]
+mdxEff mdStr = do
   trace "Creating container pool" $ pure ()
   pool <- createContainerPool 2
 
   -- Running
   trace "Executing" $ pure ()
-  result <- exec (head pool) ["echo", "Hello", "world!"]
+  result <- evaluateMd (head pool) (parse mdStr)
 
   -- Cleanup
   trace "Cleanup" $ pure ()
@@ -34,7 +36,10 @@ sayHelloEff = do
 
   return result
 
-sayHello :: IO (Either Error Result)
-sayHello = runLxcIO (runThrow sayHelloEff)
+mdx :: String -> IO (Either Error [ResultNode])
+mdx code = runLxcIO . runThrow $ mdxEff code
 
-main = sayHello >>= print
+main = do
+  code <- readFile "./examples/serial.md"
+  d <- mdx code
+  print d
