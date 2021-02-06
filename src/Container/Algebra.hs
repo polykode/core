@@ -9,6 +9,7 @@ module Container.Algebra where
 
 import Container.Eff
 import Control.Algebra
+import Control.Carrier.Throw.Either
 import Control.Monad (void)
 import Control.Monad.IO.Class
 import Data.Kind (Type)
@@ -70,3 +71,10 @@ instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
     L (Copy c name) -> (<$ ctx) <$> liftIO (lxcCopy c name)
     L (Info c) -> (<$ ctx) <$> liftIO (lxcInfo c)
     R other -> LxcIOC (alg (runLxcIO . hdl) other ctx)
+
+withLxc :: ThrowC e (LxcIOC m) a -> m (Either e a)
+withLxc = runLxcIO . runThrow
+
+---
+---
+---

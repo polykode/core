@@ -13,6 +13,7 @@ data Code
   | NodeJs String
   deriving (Show)
 
+toCode :: String -> String -> Code
 toCode lang code = case lang of
   "bash" -> Bash code
   "javascript" -> NodeJs code

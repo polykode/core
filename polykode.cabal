@@ -18,6 +18,8 @@ common lib
     process,
     strict,
     fused-effects,
+    happstack-server,
+    containers,
     base
   default-language:    Haskell2010
 
