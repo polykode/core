@@ -4,14 +4,16 @@
   - [X] Route stderr via fd
   - [X] Fix privileged container issue
   - [X] Setup network management for containers
-  - [ ] Setup unit tests for container code
-  - [ ] Get LXC to run code blocks serially (only js)
-  - [ ] Finalize javascript [adapter](#adapter responsibilities)
+  - [X] Setup unit tests for container code
+  - [X] Get LXC to run code blocks serially (js, bash)
+  - [ ] Create modules
   - [ ] Work on [modules](#modules)
+  - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Parallelize container pool creation
 
 ## Ideas
-  - [ ] Isolated networks? (docker . webserver) <-> (docker . xmd server <-> (lxc . pool)))
+  - [ ] Isolated networks? (lxd . webserver) <-> (lxd . xmd server <-> (lxd . pool)))
+  - [ ] Simpler api for same language? (Cons - inconsistent api)
   - [ ] Global metadata with comments or metadata table
   - [ ] Block hints with comments
   - [ ] Allow disabling stdout logging
@@ -44,6 +46,7 @@
   - [ ] Limit max number of files created/open
   - [ ] Create set of users with limited access
   - [ ] Create a pool of containers to optimize
+  - [ ] Execution timeout (for the whole program)
 
 ## Modules
   - [ ] Create dependency map

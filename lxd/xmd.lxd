@@ -67,7 +67,7 @@ build() {
   RUN run-lxd $lxd_file build
   RUN run-lxd $lxd_file stop
 
-  # RUN cabal update
+  RUN cabal update
 
   RUN sh -c "cd $WORKDIR/code && cabal v2-build"
 
