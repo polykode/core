@@ -4,12 +4,12 @@ import Container.Algebra
 import Container.Eff
 import Container.Pool
 import Control.Concurrent.MVar
+import qualified Data.Aeson as Json
+import qualified Data.ByteString.Lazy.Char8 as ByteString
 import qualified Data.Map as Map
 import Utils
 
-data MdData = MdString String | MdInt Integer deriving (Show, Eq)
-
-type DocumentDataStore = Map.Map String MdData
+type DocumentDataStore = Map.Map String Json.Value
 
 data MdxContext = MdxContext
   { ctxPool :: ContainerPool,
@@ -17,12 +17,15 @@ data MdxContext = MdxContext
     ctxDataStore :: MVar (Map.Map String DocumentDataStore)
   }
 
-readVariable :: String -> String -> MdxContext -> IO (Maybe MdData)
+parseValue :: String -> Maybe Json.Value
+parseValue = Json.decode . ByteString.pack
+
+readVariable :: String -> String -> MdxContext -> IO (Maybe Json.Value)
 readVariable execId varname ctx = do
   store <- readMVar $ ctxDataStore ctx
   return $ Map.lookup execId store >>= \store -> Map.lookup varname store
 
-putVariable :: String -> String -> MdData -> MdxContext -> IO ()
+putVariable :: String -> String -> Json.Value -> MdxContext -> IO ()
 putVariable execId varname value ctx = do
   store <- readMVar . ctxDataStore $ ctx
   let variables = getMaybeWithDef Map.empty . Map.lookup execId $ store

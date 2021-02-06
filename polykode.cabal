@@ -20,6 +20,8 @@ common lib
     fused-effects,
     happstack-server,
     containers,
+    aeson,
+    bytestring,
     base
   default-language:    Haskell2010
 
