@@ -4,6 +4,7 @@ module Server.Routes.Uffi where
 
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as Json
+import qualified Data.ByteString.Lazy.Char8 as ByteString
 import qualified Data.Text as Text
 import Happstack.Server
 import Server.Context
@@ -27,7 +28,7 @@ routes ctx =
             JsonResponse
               { status = 200,
                 message = var ++ " found",
-                value = Just $ show value
+                value = Just . ByteString.unpack . Json.encode $ value
               }
         Nothing ->
           json $
