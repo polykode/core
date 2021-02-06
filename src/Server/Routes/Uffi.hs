@@ -12,6 +12,33 @@ import Server.JsonResponse
 import Server.Utils
 import Utils
 
+readVariableAction var ctx = do
+  execId <- queryString $ look "exec_id"
+  value <- liftIO $ readVariable execId var ctx
+  json $
+    JsonResponse
+      { status = case value of
+          Just _ -> Success
+          Nothing -> ContextError,
+        message = case value of
+          Just _ -> var ++ " found"
+          Nothing -> "Variable " ++ var ++ " not found",
+        value = value
+      }
+
+updateVariableAction var ctx = do
+  execId <- queryString $ look "exec_id"
+  decodePostBody
+  strValue <- getDataFn $ look "value"
+  case strValue of
+    Right strValue -> do
+      let variableValue = getMaybeWithDef (Json.String . Text.pack $ strValue) $ parseValue strValue
+      liftIO $ putVariable execId var variableValue ctx
+      value <- liftIO $ readVariable execId var ctx
+      json JsonResponse {status = Success, message = "Saved variable", value = Nothing}
+    Left e -> do
+      json $ JsonResponse {status = RequestError, message = show e, value = Nothing}
+
 routes ctx =
   [ dir "call" . path $ \mod -> path $ \fn -> root $ do
       method POST
@@ -20,34 +47,8 @@ routes ctx =
       json emptyResponse,
     dir "variable" . path $ \var -> root $ do
       method GET
-      execId <- queryString $ look "exec_id"
-      value <- liftIO $ readVariable execId var ctx
-      case value of
-        Just value ->
-          json $
-            JsonResponse
-              { status = 200,
-                message = var ++ " found",
-                value = Just . ByteString.unpack . Json.encode $ value
-              }
-        Nothing ->
-          json $
-            JsonResponse
-              { status = 200,
-                message = "Variable not found",
-                value = Nothing
-              },
+      readVariableAction var ctx,
     dir "variable" . path $ \var -> root $ do
       method POST
-      execId <- queryString $ look "exec_id"
-      decodeBody (defaultBodyPolicy "/tmp/" 4096 4096 4096)
-      strValue <- getDataFn $ look "value"
-      case strValue of
-        Right strValue -> do
-          let variableValue = getMaybeWithDef (Json.String . Text.pack $ strValue) $ parseValue strValue
-          liftIO $ putVariable execId var variableValue ctx
-          value <- liftIO $ readVariable execId var ctx
-          json JsonResponse {status = 200, message = "Saved variable", value = Nothing}
-        Left e -> do
-          json $ JsonResponse {status = 400, message = show e, value = Nothing}
+      updateVariableAction var ctx
   ]
