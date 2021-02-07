@@ -43,6 +43,12 @@ build() {
     wget \
     bash \
     nodejs \
+    npm \
+  ;
+
+  # Install node modules
+  RUN npm i \
+    node-fetch \
   ;
 
   RUN chmod 777 /tmp

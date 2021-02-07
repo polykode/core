@@ -33,6 +33,10 @@ putVariable execId varname value ctx = do
   modifyMVar_ (ctxDataStore ctx) $ return . Map.insert execId newVariables
   return ()
 
+garbageCollect :: String -> MdxContext -> IO ()
+garbageCollect execId ctx =
+  modifyMVar_ (ctxDataStore ctx) $ return . Map.delete execId
+
 containerPool :: Int -> IO (Either Error ContainerPool)
 containerPool = withLxc . createContainerPool
 

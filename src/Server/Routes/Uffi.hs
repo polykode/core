@@ -29,12 +29,11 @@ readVariableAction var ctx = do
 updateVariableAction var ctx = do
   execId <- queryString $ look "exec_id"
   decodePostBody
-  strValue <- getDataFn $ look "value"
+  strValue <- body . getDataFn $ look "value" -- TODO: Use `checkRq m a a -> Either String b` for validation
   case strValue of
     Right strValue -> do
       let variableValue = getMaybeWithDef (Json.String . Text.pack $ strValue) $ parseValue strValue
-      liftIO $ putVariable execId var variableValue ctx
-      value <- liftIO $ readVariable execId var ctx
+       in liftIO $ putVariable execId var variableValue ctx
       json JsonResponse {status = Success, message = "Saved variable", value = Nothing}
     Left e -> do
       json $ JsonResponse {status = RequestError, message = show e, value = Nothing}
@@ -44,7 +43,7 @@ routes ctx =
       method POST
       execId <- queryString $ look "exec_id"
       liftIO . putStrLn $ mod ++ "." ++ fn
-      json emptyResponse,
+      json $ emptyResponse "",
     dir "variable" . path $ \var -> root $ do
       method GET
       readVariableAction var ctx,

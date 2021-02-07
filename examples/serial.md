@@ -1,15 +1,26 @@
 # Helo world
 Content for stuffff
 
-<!--- @module foobar -->
-```js
-export const fn1 = (a, b) => a + b;
+```bash
+node -v
 ```
 
 ```js
-import { fn1 } from '@@foobar';
+context.hello = "world";
+context.mynum = 5;
+context.list = [1, 2, 3, 4];
+```
 
-console.log("fuck you", fn1(a, b))
+```js
+// import { fn1 } from '@@foobar';
+
+context.hello.then(console.log);
+context.mynum.then(console.log);
+context.list.then(console.log);
+
+console.log("Fin of js");
+
+// console.log("fuck you", fn1(a, b))
 ```
 
 ```bash

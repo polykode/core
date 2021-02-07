@@ -19,9 +19,7 @@ toCode lang code = case lang of
   "javascript" -> NodeJs code
   "js" -> NodeJs code
 
-executeCode :: Has LxcIOErr sig m => Container -> Code -> m Result
-executeCode container = \case
-  Bash code -> CodeExecutor.Langs.Bash.run execCmd code
-  NodeJs code -> CodeExecutor.Langs.NodeJs.run execCmd code
-  where
-    execCmd = exec container
+executeCode :: Has LxcIOErr sig m => String -> Container -> Code -> m Result
+executeCode execId container = \case
+  Bash code -> CodeExecutor.Langs.Bash.run execId container code
+  NodeJs code -> CodeExecutor.Langs.NodeJs.run execId container code

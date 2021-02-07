@@ -26,7 +26,7 @@ data JsonResponse = JsonResponse
 -- Helper functions
 
 -- Just temporary json response placeholder for debugging
-emptyResponse = JsonResponse {status = Ignore, message = "nothing", value = Just . Json.String . Text.pack $ ""}
+emptyResponse str = JsonResponse {status = Ignore, message = "nothing", value = Just . Json.String . Text.pack $ str}
 
 -- send json response
 -- TODO: Allow non-ok status
