@@ -33,13 +33,13 @@ executeMdAction ctx = do
   liftIO $ garbageCollect execId ctx
   case result of
     Right nodes -> do
-      json $
+      json ok $
         JsonResponse
           { status = Success,
-            value = Just . Json.String . Text.pack . show $ result,
+            value = Just . Json.toJSONList . map Json.toJSON $ nodes,
             message = "Result of evaluation"
           }
-    Left e -> json $ JsonResponse {status = ContextError, value = Nothing, message = show e}
+    Left e -> json ok $ JsonResponse {status = ContextError, value = Nothing, message = show e}
 
 routes ctx =
   [ dir "execute" . root $ do

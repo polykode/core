@@ -15,7 +15,7 @@ import Utils
 readVariableAction var ctx = do
   execId <- queryString $ look "exec_id"
   value <- liftIO $ readVariable execId var ctx
-  json $
+  json ok $
     JsonResponse
       { status = case value of
           Just _ -> Success
@@ -34,16 +34,16 @@ updateVariableAction var ctx = do
     Right strValue -> do
       let variableValue = getMaybeWithDef (Json.String . Text.pack $ strValue) $ parseValue strValue
        in liftIO $ putVariable execId var variableValue ctx
-      json JsonResponse {status = Success, message = "Saved variable", value = Nothing}
+      json ok JsonResponse {status = Success, message = "Saved variable", value = Nothing}
     Left e -> do
-      json $ JsonResponse {status = RequestError, message = show e, value = Nothing}
+      json badRequest $ JsonResponse {status = RequestError, message = show e, value = Nothing}
 
 routes ctx =
   [ dir "call" . path $ \mod -> path $ \fn -> root $ do
       method POST
       execId <- queryString $ look "exec_id"
       liftIO . putStrLn $ mod ++ "." ++ fn
-      json $ emptyResponse "",
+      json ok $ emptyResponse "TODO",
     dir "variable" . path $ \var -> root $ do
       method GET
       readVariableAction var ctx,

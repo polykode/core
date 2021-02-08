@@ -28,8 +28,10 @@ data JsonResponse = JsonResponse
 -- Just temporary json response placeholder for debugging
 emptyResponse str = JsonResponse {status = Ignore, message = "nothing", value = Just . Json.String . Text.pack $ str}
 
+toJsonString = Json.String . Text.pack
+
 -- send json response
 -- TODO: Allow non-ok status
 -- TODO: Set content type json
-json :: FilterMonad Response m => JsonResponse -> m String
-json = ok . ByteString.unpack . Json.encode
+json :: FilterMonad Response m => (String -> m String) -> JsonResponse -> m String
+json send = send . ByteString.unpack . Json.encode
