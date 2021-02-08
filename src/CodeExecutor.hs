@@ -2,8 +2,8 @@
 
 module CodeExecutor where
 
-import qualified CodeExecutor.Langs.Bash
-import qualified CodeExecutor.Langs.NodeJs
+import qualified CodeExecutor.Langs.Bash.Run as BashCE
+import qualified CodeExecutor.Langs.NodeJs.Run as NodeJsCE
 import Container.Eff
 import Control.Algebra
 import GHC.IO.Exception
@@ -21,5 +21,5 @@ toCode lang code = case lang of
 
 executeCode :: Has LxcIOErr sig m => String -> Container -> Code -> m Result
 executeCode execId container = \case
-  Bash code -> CodeExecutor.Langs.Bash.run execId container code
-  NodeJs code -> CodeExecutor.Langs.NodeJs.run execId container code
+  Bash code -> BashCE.run execId container code
+  NodeJs code -> NodeJsCE.run execId container code

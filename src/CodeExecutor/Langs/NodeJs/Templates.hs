@@ -1,26 +1,24 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module CodeExecutor.Langs.NodeJs where
+module CodeExecutor.Langs.NodeJs.Templates where
 
-import CodeExecutor.Utils
-import Container.Eff
-import Control.Algebra
-import Control.Monad.IO.Class
-import GHC.IO.Exception
-import Text.RawString.QQ
+import Config
+--import Data.String.Interpolate (i)
+import Text.RawString.QQ (r)
 
--- Add host pointing to this in hostfile of the template container
-wrap execId code =
+var k value = "const " ++ k ++ " = " ++ "'" ++ value ++ "'; "
+
+contextTemplate :: String -> String -> String
+contextTemplate execId code =
   [r|
 const { context } = (() => {
   const fetch = require('node-fetch');
   const qs = require('querystring');
 
-  const execId = "|]
-    ++ execId
-    ++ [r|";
-  const baseUrl = "http://10.118.192.132:3000";
-
+  |]
+    ++ var "execId" execId
+    ++ var "baseUrl" serverBaseUrl
+    ++ [r|
   const readValue = key =>
     fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`)
       .then(r => r.json()).then(data => data.value);
@@ -44,8 +42,8 @@ const { context } = (() => {
 
   return { context };
 })();
-  |]
+|]
     ++ code
 
-run :: Has LxcIOErr sig m => String -> Container -> String -> m Result
-run execId c code = exec c ["node", "-e", wrap execId code]
+importsTemplate :: String -> String -> String
+importsTemplate execId code = code
