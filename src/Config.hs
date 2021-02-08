@@ -2,6 +2,8 @@ module Config where
 
 import Happstack.Server
 
+version = "0.0.0"
+
 containerPoolSize = 3 :: Int
 
 serverPort = 3000
