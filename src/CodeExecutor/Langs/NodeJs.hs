@@ -9,42 +9,41 @@ import Control.Monad.IO.Class
 import GHC.IO.Exception
 import Text.RawString.QQ
 
--- TODO: Hide everything else in closure
 -- Add host pointing to this in hostfile of the template container
 wrap execId code =
   [r|
-const fetch = require('node-fetch');
-const qs = require('querystring');
+const { context } = (() => {
+  const fetch = require('node-fetch');
+  const qs = require('querystring');
 
-const execId = "|]
+  const execId = "|]
     ++ execId
     ++ [r|";
-const baseUrl = "http://10.118.192.180:3000";
+  const baseUrl = "http://10.118.192.132:3000";
 
-const readValue = key =>
-  fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`, {
-    headers: { 'X-Exec-Id': execId, }
-  })
-    .then(r => r.json())
-    .then(data => data.value);
+  const readValue = key =>
+    fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`)
+      .then(r => r.json()).then(data => data.value);
 
-const setValue = (key, value) => {
-  const valueString = typeof value === 'string' ? value : JSON.stringify(value)
+  const setValue = (key, value) => {
+    const valueString = typeof value === 'string' ? value : JSON.stringify(value);
+    return fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`, {
+      method: 'POST',
+      headers: {
+        'X-Exec-Id': execId,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: qs.stringify({ value: valueString }),
+    });
+  };
 
-  return fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`, {
-    method: 'POST',
-    headers: {
-      'X-Exec-Id': execId,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: qs.stringify({ value: valueString }),
+  const context = new Proxy({}, {
+    get: (_, k) => readValue(k),
+    set: (_, k, value) => setValue(k, value),
   });
-};
 
-const context = new Proxy({}, {
-  get: (_, k) => readValue(k),
-  set: (_, k, value) => setValue(k, value),
-});
+  return { context };
+})();
   |]
     ++ code
 

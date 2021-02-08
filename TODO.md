@@ -33,7 +33,6 @@
 
 ## Container
   - [X] Execute inside lxc
-  - [ ] Setup seccomp profile
   - [ ] Destroy and re-create images ones used `OR` standard cleanup?
   - [ ] Cleanup processes - `pkill -u user --signal SIGKILL`
   - [ ] Cleanup files - `find /home/user -user user -delete`
@@ -45,6 +44,7 @@
   - [ ] Limit max number of processes
   - [ ] Limit max number of files created/open
   - [ ] Create set of users with limited access
+  - [ ] Setup seccomp profile
   - [ ] Create a pool of containers to optimize
   - [ ] Execution timeout (for the whole program)
 

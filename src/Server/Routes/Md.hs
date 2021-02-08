@@ -22,11 +22,6 @@ runMdFile execId c = do
   contents <- readFile "./examples/serial.md"
   withLxc $ evaluate execId c contents
 
-runCode :: String -> Container -> IO (Either Error Result)
-runCode execId c =
-  withLxc . executeCode execId c $
-    NodeJs [r| context.hello = "world"; context.hello.then(console.log); |]
-
 executeMdAction ctx = do
   let execId = "foobar"
   result <- liftIO $ do
@@ -34,13 +29,16 @@ executeMdAction ctx = do
     putVariable execId "__exec_id__" (Json.String . Text.pack $ execId) ctx
     nextContainer ctx
     putStrLn $ "Running on " ++ name container
-    runCode execId container
+    runMdFile execId container
   liftIO $ garbageCollect execId ctx
   case result of
-    Right (status, stdout, stderr) -> do
-      let jsonStr = Json.String . Text.pack
-      let result = Json.object . map (bimap Text.pack jsonStr) $ [("exitCode", show status), ("stdout", stdout), ("stderr", stderr)]
-      json $ JsonResponse {status = Success, value = Just result, message = "Result of evaluation"}
+    Right nodes -> do
+      json $
+        JsonResponse
+          { status = Success,
+            value = Just . Json.String . Text.pack . show $ result,
+            message = "Result of evaluation"
+          }
     Left e -> json $ JsonResponse {status = ContextError, value = Nothing, message = show e}
 
 routes ctx =
