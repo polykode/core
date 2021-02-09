@@ -6,9 +6,9 @@ version = "0.0.0"
 
 containerPoolSize = 3 :: Int
 
-serverPort = 3000
+serverHost = "core.polykode.local"
 
-serverHost = "10.118.192.132"
+serverPort = 3000
 
 serverBaseUrl = "http://" ++ serverHost ++ ":" ++ show serverPort
 
