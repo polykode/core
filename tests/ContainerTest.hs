@@ -34,7 +34,7 @@ tests = describe "Container" $ do
           mockProgram = runMock $ exec (Container "foobar") ["echo", "1"]
        in runIO mockProgram
     it "should return the executed command string with success" $ do
-      result `shouldBe` Right (ExitSuccess, "Executing (foobar): echo 1", "")
+      result `shouldBe` Right (ExitSuccess, "Executing (foobar)", "echo 1")
 
   describe "Pool" $ do
     describe "createContainerPool" $ do
