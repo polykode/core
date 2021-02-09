@@ -32,7 +32,8 @@ Test-Suite test
   main-is:    _main.hs
   default: false
   build-depends:
-    hspec
+    hspec,
+    hspec-golden
 
 library library
   import: lib

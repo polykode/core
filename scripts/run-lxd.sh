@@ -59,6 +59,20 @@ COPY() {
   lxc file push -p $1 ${CONTAINER_NAME}${targetPath} || exit 1;
   echo "";
 }
+
+D_EXPOSE_PORT() { echo "
+  $1:
+    type: proxy
+    listen: tcp:0.0.0.0:$3
+    connect: tcp:127.0.0.1:$2
+"; }
+
+D_MOUNT() { echo "
+  $1:
+    type: disk
+    path: $3
+    source: $2
+"; }
 ### }}}
 
 

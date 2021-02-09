@@ -14,14 +14,8 @@ config:
   raw.idmap: both 1000 0
 description: XMD profile
 devices:
-  port_xmd:
-    type: proxy
-    listen: tcp:0.0.0.0:3000
-    connect: tcp:127.0.0.1:3000
-  code:
-    type: disk
-    path: $WORKDIR/code
-    source: $(pwd)
+$(D_EXPOSE_PORT xmd 3000 3000)
+$(D_MOUNT code $(pwd) "$WORKDIR/code")
   root:
     type: disk
     path: /
@@ -55,6 +49,7 @@ build() {
     zlib1g-dev \
     ghc \
     cabal-install \
+    entr \
   ;
 
   # Copy run-lxd program
