@@ -4,6 +4,7 @@
 
 module Server.Routes.Md where
 
+import CodeBlocks
 import CodeExecutor
 import Container.Algebra
 import Container.Eff
@@ -13,16 +14,16 @@ import qualified Data.Aeson as Json
 import Data.Bifunctor (bimap)
 import qualified Data.Text as Text
 import Happstack.Server
+import Parser
 import Server.Context
 import Server.JsonResponse
 import Server.Utils
 import Text.RawString.QQ
 
-runMdFile :: String -> Container -> IO (Either Error String)
+runMdFile :: String -> Container -> IO (Either Error [CodeBlockResult])
 runMdFile execId c = do
-  --contents <- readFile "./examples/serial.md"
-  --withLxc $ evaluate execId c contents
-  return $ Right ""
+  contents <- readFile "./examples/serial.md"
+  withLxc . evaluateBlocks execId c . mdToCodeBlocks . parseMarkdown $ contents
 
 executeMdAction ctx = do
   let execId = "foobar"

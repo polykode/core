@@ -12,16 +12,19 @@
   - [ ] Parallelize container pool creation
 
 ## Ideas
-  - [ ] Isolated networks? (lxd . webserver) <-> (lxd . xmd server <-> (lxd . pool)))
-  - [ ] Simpler api for same language? (Cons - inconsistent api)
+  - [X] Isolated networks? (lxd . webserver) <-> (lxd . xmd server <-> (lxd . pool)))
+  - [ ] Top level await support for js?
+  - [ ] Some simple type validation? (if possible)
+  - [ ] Simpler/Direct imports for same language? (inconsistent return values)
   - [ ] Global metadata with comments or metadata table
   - [ ] Block hints with comments
   - [ ] Allow disabling stdout logging
-  - [ ] Executable markdown code blocks
+  - [ ] Allow some ui sandboxed mutations in the result block?
   - [ ] Interactions between multiple languages
   - [ ] XMD server + clients (code blocks)
   - [ ] Allow importing other markdown files as modules?
-  - [ ] Caching?
+  - [ ] Compilation caching?
+  - [ ] Create a new environment after page load and use execid
 
 ## Dependencies
   - [X] Markdown parser https://hackage.haskell.org/package/cmark
@@ -64,12 +67,12 @@
   - Run
 
 ## Language adapters
-  - [ ] Javascript
-  - [ ] Typescript
+  - [X] Javascript
+  - [X] Bash
   - [ ] Python
+  - [ ] Typescript
   - [ ] Reasonml
   - [ ] Scheme
-  - [ ] Bash
   - [ ] C
   - [ ] Rust
   - [ ] Haskell

@@ -93,10 +93,16 @@ tests = describe "Parser" $ do
             [r|
 <!--@
 (module foobar)
-(dependencies (npm.rambda 1.0.0))
+(dependencies
+  (npm.rambda 1.0.0))
 -->
 ```js
 console.log(1)
+```
+
+<!-- Hello world -->
+```bash
+echo 1
 ```
         |]
         )
@@ -108,6 +114,7 @@ console.log(1)
                                  hDependencies = [("npm.rambda", "1.0.0")]
                                }
                            )
-                           (NodeJs "console.log(1)\n")
+                           (NodeJs "console.log(1)\n"),
+                         MdCodeBlock defaultHints (Bash "echo 1\n")
                        ]
                    ]

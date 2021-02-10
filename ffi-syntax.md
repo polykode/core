@@ -13,7 +13,7 @@
 
 ### JS
 
-<!--- module foobar -->
+<!--@ (module foobar) -->
 ```js
 export const fn1 = s => console.log(s);
 export const fn2 = (a, b) => a + b;
@@ -70,7 +70,7 @@ const fn1 = createFn('foobar', 'fn1');
 
 ### Bash
 
-<!--- module foobar -->
+<!--@ (module foobar) -->
 ```bash
 fn1() { echo "$1"; }
 fn2() { echo "$1 + $2" | bc; }
@@ -125,7 +125,7 @@ call() {
 
 ### Python
 
-<!--- module foobar -->
+<!--@ (module foobar) -->
 ```python
 def fn1(s):
   print(s)
@@ -183,7 +183,7 @@ def fn2(**args):
 
 ### Haskell
 
-<!--- @module foobar -->
+<!--@ (module foobar) -->
 ```haskell
 fn1 = putStrLn
 fn2 = (+)
@@ -209,7 +209,7 @@ get context "mynum" -- :: IO Int
 
 ### C
 
-<!--- module foobar -->
+<!--@ (module foobar) -->
 ```c
 void fn1(char* str) { printf("%s", str); }
 int fn2(int a, int b) { return a + b; }

@@ -31,10 +31,6 @@ data MarkdownNode
   | MdRenderNode Node [MarkdownNode]
   deriving (Show, Eq)
 
-cmarkOptions = [optUnsafe, optNormalize]
-
-parseMarkdown = wrapNodes . (: []) . commonmarkToNode cmarkOptions . Text.pack
-
 valueP :: Parsec String u HintExpression
 valueP = HintLabel <$> many1 (alphaNum <|> oneOf allowedChars)
   where
@@ -50,7 +46,7 @@ hintExpressionP = withWhitespace $ do
   return $ HintExpr expr
 
 hintHtmlCommentParser :: Parsec String u [HintExpression]
-hintHtmlCommentParser = do
+hintHtmlCommentParser = withWhitespace $ do
   string "<!--@"
   res <- hintExpressionP `sepBy` whitespace
   try $ string "-->"
@@ -60,14 +56,13 @@ isHintComment :: String -> Bool
 isHintComment = isPrefixOf "<!--@"
 
 tokenizeHints :: String -> Either ParseError [HintExpression]
-tokenizeHints = parse hintHtmlCommentParser "ParserError"
+tokenizeHints = parse hintHtmlCommentParser "hint:ParserError"
 
 parseHints :: String -> Either ParseError Hints
 parseHints = fmap (toHintConfig $ Hints {hType = RunBlock "", hDependencies = []}) . tokenizeHints
   where
     toHintConfig h [] = h
     toHintConfig hints (head : tl) = case head of
-      HintLabel str -> toHintConfig hints tl -- Ignore
       HintExpr (HintLabel "module" : HintLabel moduleName : _) ->
         toHintConfig (hints {hType = ModuleBlock moduleName}) tl
       HintExpr (HintLabel "noop" : _) ->
@@ -80,20 +75,27 @@ parseHints = fmap (toHintConfig $ Hints {hType = RunBlock "", hDependencies = []
             HintLabel dep -> (dep, "*")
             HintExpr (HintLabel dep : HintLabel version : _) -> (dep, version)
             HintExpr (HintLabel dep : _) -> (dep, "*")
+      _ -> toHintConfig hints tl -- Ignore rest
 
 wrapNodes :: [Node] -> [MarkdownNode]
 wrapNodes = \case
   [] -> []
-  ((Node _ (HTML_BLOCK str) _) : (Node _ (CODE_BLOCK lang code) _) : rest) -> newNodes ++ wrapNodes rest
+  ((Node _ (HTML_BLOCK htmlText) _) : (Node _ (CODE_BLOCK lang code) _) : rest) -> newNodes ++ wrapNodes rest
     where
+      hintStr = Text.unpack htmlText
       newNodes = [MdCodeBlock hints $ toCode (Text.unpack lang) (Text.unpack code)]
-      hints = getEitherWithDef defaultHints $ parseHints (Text.unpack str)
+      hints =
+        if isHintComment hintStr
+          then getEitherWithDef defaultHints $ parseHints hintStr
+          else defaultHints
   ((Node _ (CODE_BLOCK lang code) _) : rest) -> newNodes ++ wrapNodes rest
     where
       newNodes = [MdCodeBlock defaultHints $ toCode (Text.unpack lang) (Text.unpack code)]
   ((Node _ nodeType nodes) : rest) -> newNodes ++ wrapNodes rest
     where
       newNodes = [MdRenderNode (Node Nothing nodeType nodes) $ wrapNodes nodes]
+
+parseMarkdown = wrapNodes . (: []) . commonmarkToNode [optUnsafe, optNormalize] . Text.pack
 
 --
 --
