@@ -1,26 +1,28 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TupleSections #-}
 
 module Server.Routes.Md where
 
 import CodeExecutor
 import Container.Algebra
 import Container.Eff
+import Control.Algebra
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as Json
 import Data.Bifunctor (bimap)
 import qualified Data.Text as Text
 import Happstack.Server
-import MdEval
 import Server.Context
 import Server.JsonResponse
 import Server.Utils
 import Text.RawString.QQ
 
-runMdFile :: String -> Container -> IO (Either Error [ResultNode])
+runMdFile :: String -> Container -> IO (Either Error String)
 runMdFile execId c = do
-  contents <- readFile "./examples/serial.md"
-  withLxc $ evaluate execId c contents
+  --contents <- readFile "./examples/serial.md"
+  --withLxc $ evaluate execId c contents
+  return $ Right ""
 
 executeMdAction ctx = do
   let execId = "foobar"

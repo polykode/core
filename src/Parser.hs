@@ -11,15 +11,24 @@ import Text.Parsec
 import Utils
 import Prelude
 
-data HintExpression = HintExpr [HintExpression] | HintLabel String
-  deriving (Eq, Show)
+data CodeBlockType = RunBlock String | ModuleBlock String | Noop
+  deriving (Show, Eq)
 
-data Hint = HModule String | HDependencies [(String, String)] | HNoop deriving (Show, Eq)
+data HintExpression = HintExpr [HintExpression] | HintLabel String
+  deriving (Show, Eq)
+
+data Hints = Hints
+  { hType :: CodeBlockType,
+    hDependencies :: [(String, String)]
+  }
+  deriving (Show, Eq)
+
+defaultHints = Hints {hType = RunBlock "", hDependencies = []}
 
 -- TODO: Actual meta data please
 data MarkdownNode
-  = CodeBlock [Hint] Code
-  | RenderNode Node [MarkdownNode]
+  = MdCodeBlock Hints Code
+  | MdRenderNode Node [MarkdownNode]
   deriving (Show, Eq)
 
 cmarkOptions = [optUnsafe, optNormalize]
@@ -53,15 +62,18 @@ isHintComment = isPrefixOf "<!--@"
 tokenizeHints :: String -> Either ParseError [HintExpression]
 tokenizeHints = parse hintHtmlCommentParser "ParserError"
 
-parseHints :: String -> Either ParseError [Hint]
-parseHints = fmap toHintConfig . tokenizeHints
+parseHints :: String -> Either ParseError Hints
+parseHints = fmap (toHintConfig $ Hints {hType = RunBlock "", hDependencies = []}) . tokenizeHints
   where
-    toHintConfig [] = []
-    toHintConfig (head : tl) = case head of
-      HintLabel str -> toHintConfig tl -- Ignore
-      HintExpr (HintLabel "module" : HintLabel moduleName : _) -> HModule moduleName : toHintConfig tl
-      HintExpr (HintLabel "noop" : _) -> HNoop : toHintConfig tl
-      HintExpr (HintLabel "dependencies" : deps) -> HDependencies (toDepsList deps) : toHintConfig tl
+    toHintConfig h [] = h
+    toHintConfig hints (head : tl) = case head of
+      HintLabel str -> toHintConfig hints tl -- Ignore
+      HintExpr (HintLabel "module" : HintLabel moduleName : _) ->
+        toHintConfig (hints {hType = ModuleBlock moduleName}) tl
+      HintExpr (HintLabel "noop" : _) ->
+        toHintConfig (hints {hType = Noop}) tl
+      HintExpr (HintLabel "dependencies" : deps) ->
+        toHintConfig (hints {hDependencies = toDepsList deps}) tl
         where
           toDepsList :: [HintExpression] -> [(String, String)]
           toDepsList = map $ \case
@@ -74,14 +86,14 @@ wrapNodes = \case
   [] -> []
   ((Node _ (HTML_BLOCK str) _) : (Node _ (CODE_BLOCK lang code) _) : rest) -> newNodes ++ wrapNodes rest
     where
-      newNodes = [CodeBlock hints $ toCode (Text.unpack lang) (Text.unpack code)]
-      hints = getEitherWithDef [] $ parseHints (Text.unpack str)
+      newNodes = [MdCodeBlock hints $ toCode (Text.unpack lang) (Text.unpack code)]
+      hints = getEitherWithDef defaultHints $ parseHints (Text.unpack str)
   ((Node _ (CODE_BLOCK lang code) _) : rest) -> newNodes ++ wrapNodes rest
     where
-      newNodes = [CodeBlock [] $ toCode (Text.unpack lang) (Text.unpack code)]
+      newNodes = [MdCodeBlock defaultHints $ toCode (Text.unpack lang) (Text.unpack code)]
   ((Node _ nodeType nodes) : rest) -> newNodes ++ wrapNodes rest
     where
-      newNodes = [RenderNode (Node Nothing nodeType nodes) $ wrapNodes nodes]
+      newNodes = [MdRenderNode (Node Nothing nodeType nodes) $ wrapNodes nodes]
 
 --
 --

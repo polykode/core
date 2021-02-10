@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module EffectMock where
+module TestUtils.EffectMock where
 
 import Container.Eff
 import Container.Pool

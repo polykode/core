@@ -46,6 +46,7 @@
   - [ ] Create set of users with limited access
   - [ ] Setup seccomp profile
   - [ ] Create a pool of containers to optimize
+  - [ ] Prebaked images can be stored on the server?
   - [ ] Execution timeout (for the whole program)
 
 ## Modules

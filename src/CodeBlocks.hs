@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module CodeBlocks where
@@ -9,11 +10,12 @@ import Data.Aeson ((.:))
 import qualified Data.Aeson as Json
 import Data.Aeson.Types (Parser)
 import qualified Data.Text as Text
+import Parser
 import Server.JsonResponse
 
 type ModuleExports = [String] -- NOTE: Will containe more information about exported modules/data
 
-data CodeBlock = RunBlock String Code | ModuleBlock String Code
+data CodeBlock = CodeBlock Hints Code
   deriving (Show, Eq)
 
 instance Json.FromJSON CodeBlock where
@@ -22,9 +24,10 @@ instance Json.FromJSON CodeBlock where
     name <- obj .: "name"
     lang <- obj .: "lang"
     code <- obj .: "code"
+    -- TODO: Parse dependencies
     return $ case ctype of
-      "run" -> RunBlock name (toCode lang code)
-      "module" -> ModuleBlock name (toCode lang code)
+      "run" -> CodeBlock (defaultHints {hType = RunBlock name}) $ toCode lang code
+      "module" -> CodeBlock (defaultHints {hType = ModuleBlock name}) $ toCode lang code
 
 data CodeBlockResult = RunBlockResult String Code Result | ModuleBlockResult String Code ModuleExports
   deriving (Show, Eq)
@@ -56,7 +59,19 @@ evaluateBlocks :: Has LxcIOErr sig m => String -> Container -> [CodeBlock] -> m 
 evaluateBlocks execId container [] = return []
 evaluateBlocks execId container (h : tl) = do
   blockResult <- case h of
-    RunBlock name code -> RunBlockResult name code <$> executeCode execId container code
-    ModuleBlock name code -> return $ ModuleBlockResult name code [] -- TODO: Add module exports parsing
+    CodeBlock (Hints (RunBlock name) _) code ->
+      (: []) . RunBlockResult name code <$> executeCode execId container code
+    CodeBlock (Hints (ModuleBlock name) _) code ->
+      return [ModuleBlockResult name code []] -- TODO: Add module exports parsing
+    _ -> return []
   rest <- evaluateBlocks execId container tl
-  return $ blockResult : rest
+  return $ blockResult ++ rest
+
+mdToCodeBlocks :: [MarkdownNode] -> [CodeBlock]
+mdToCodeBlocks [] = []
+mdToCodeBlocks (MdRenderNode _ children : tl) = mdToCodeBlocks children ++ mdToCodeBlocks tl
+mdToCodeBlocks (MdCodeBlock hints code : tl) = CodeBlock hints code : mdToCodeBlocks tl
+
+--
+--
+--

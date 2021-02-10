@@ -14,9 +14,9 @@ import Container.Pool
 import Control.Algebra
 import Control.Carrier.Throw.Either
 import Control.Monad.IO.Class
-import EffectMock
 import GHC.IO.Exception
 import Test.Hspec
+import TestUtils.EffectMock
 import Text.RawString.QQ
 
 tests = describe "Container" $ do
