@@ -27,7 +27,11 @@ data LxcEff (m :: Type -> Type) k where
   Exec :: Container -> [String] -> LxcEff m Result
   Info :: Container -> LxcEff m (Either Error String)
 
-type LxcIOErr = LxcEff :+: Throw Error
+data FileIOEff (m :: Type -> Type) k where
+  CreateLocalFile :: String -> String -> FileIOEff m ()
+  FilePush :: Container -> String -> String -> FileIOEff m ()
+
+type LxcIOErr = LxcEff :+: FileIOEff :+: Throw Error
 
 start :: Has LxcIOErr sig m => Container -> m ()
 start c = send (Start c) >>= liftEither
@@ -46,3 +50,20 @@ copy c name = send (Copy c name) >>= liftEither
 
 exec :: Has LxcIOErr sig m => Container -> [String] -> m Result
 exec c = send . Exec c
+
+filePush :: Has LxcIOErr sig m => Container -> String -> String -> m ()
+filePush c f1 f2 = send $ FilePush c f1 f2
+
+createFileInContainer :: Has LxcIOErr sig m => Container -> String -> String -> m ()
+createFileInContainer c filePath contents = do
+  send $ CreateLocalFile tmpPath contents
+  filePush c tmpPath filePath
+  where
+    tmpPath = "/tmp/" ++ name c ++ "-" ++ toFlatFileName filePath
+    toFlatFileName f = "file" ++ map replacer f
+      where
+        replacer '/' = '-'
+        replacer c = c
+
+--
+--

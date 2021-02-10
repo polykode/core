@@ -29,4 +29,13 @@ instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
     L (Info c) -> (<$ ctx) <$> liftIO (pure . Right $ "info")
     R other -> LxcIOC (alg (runMockLxcIO . hdl) other ctx)
 
-runMock = runMockLxcIO . runThrow
+newtype FileIOC m a = FileIOC {runMockFileIO :: m a}
+  deriving (Applicative, Functor, Monad, MonadIO)
+
+instance (MonadIO m, Algebra sig m) => Algebra (FileIOEff :+: sig) (FileIOC m) where
+  alg hdl sig ctx = case sig of
+    L (CreateLocalFile fp contents) -> return $ () <$ ctx
+    L (FilePush c f1 f2) -> return $ () <$ ctx
+    R other -> FileIOC (alg (runMockFileIO . hdl) other ctx)
+
+runMock = runMockFileIO . runMockLxcIO . runThrow

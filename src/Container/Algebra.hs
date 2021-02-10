@@ -15,6 +15,7 @@ import Control.Monad.IO.Class
 import Data.Kind (Type)
 import Debug.Trace
 import GHC.IO.Exception
+import System.IO
 import System.Process
 
 runLxcCommand :: [String] -> IO Result
@@ -59,6 +60,20 @@ lxcExec c command = runLxcCommand $ ["exec", name c, "--"] ++ command
 lxcInfo :: Container -> IO (Either Error String)
 lxcInfo c = handleResult <$> runLxcCommand ["info", name c]
 
+lxcFilePush :: Container -> String -> String -> IO ()
+lxcFilePush c f1 f2 =
+  trace ("Moved file from " ++ f1 ++ " to " ++ f2)
+    . void
+    $ runLxcCommand ["file", "push", f1, name c ++ f2, "-p"]
+
+localWriteFile :: String -> String -> IO ()
+localWriteFile f contents = do
+  putStrLn ("Writing to file " ++ f)
+  handle <- openFile f WriteMode
+  hPutStr handle contents
+  hClose handle
+  return ()
+
 newtype LxcIOC m a = LxcIOC {runLxcIO :: m a}
   deriving (Applicative, Functor, Monad, MonadIO)
 
@@ -72,8 +87,17 @@ instance (MonadIO m, Algebra sig m) => Algebra (LxcEff :+: sig) (LxcIOC m) where
     L (Info c) -> (<$ ctx) <$> liftIO (lxcInfo c)
     R other -> LxcIOC (alg (runLxcIO . hdl) other ctx)
 
-withLxc :: ThrowC e (LxcIOC m) a -> m (Either e a)
-withLxc = runLxcIO . runThrow
+newtype FileIOC m a = FileIOC {runFileIO :: m a}
+  deriving (Applicative, Functor, Monad, MonadIO)
+
+instance (MonadIO m, Algebra sig m) => Algebra (FileIOEff :+: sig) (FileIOC m) where
+  alg hdl sig ctx = case sig of
+    L (CreateLocalFile fp contents) -> (<$ ctx) <$> liftIO (localWriteFile fp contents)
+    L (FilePush c f1 f2) -> (<$ ctx) <$> liftIO (lxcFilePush c f1 f2)
+    R other -> FileIOC (alg (runFileIO . hdl) other ctx)
+
+withLxc :: ThrowC e (LxcIOC (FileIOC m)) a -> m (Either e a)
+withLxc = runFileIO . runLxcIO . runThrow
 
 ---
 ---
