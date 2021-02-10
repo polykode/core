@@ -2,6 +2,8 @@
 
 module Utils where
 
+import Text.Parsec
+
 mapFst fn (a, b) = (fn a, b)
 
 mapSnd fn (a, b) = (a, fn b)
@@ -22,3 +24,13 @@ monadAppend = liftJoin2 (\ls x -> return $ ls ++ [x])
 
 concatM :: Monad m => [m a] -> m [a]
 concatM = foldl monadAppend (pure [])
+
+whitespace :: Parsec String u String
+whitespace = many $ oneOf [' ', '\n', '\t']
+
+withWhitespace :: Parsec String u a -> Parsec String u a
+withWhitespace comb = do
+  whitespace
+  content <- comb
+  whitespace
+  return content
