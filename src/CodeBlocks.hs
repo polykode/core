@@ -70,7 +70,9 @@ evaluateBlocks execId container (h : tl) = do
 mdToCodeBlocks :: [MarkdownNode] -> [CodeBlock]
 mdToCodeBlocks [] = []
 mdToCodeBlocks (MdRenderNode _ children : tl) = mdToCodeBlocks children ++ mdToCodeBlocks tl
-mdToCodeBlocks (MdCodeBlock hints code : tl) = CodeBlock hints code : mdToCodeBlocks tl
+mdToCodeBlocks (MdCodeBlock hints code : tl) = newNodes ++ mdToCodeBlocks tl
+  where
+    newNodes = [CodeBlock hints code | hType hints /= Noop]
 
 --
 --

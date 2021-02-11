@@ -50,7 +50,7 @@ build() {
   ;
 
   # Install node modules
-  RUN npm i \
+  RUN npm i -g \
     node-fetch \
   ;
 

@@ -59,7 +59,6 @@ tests = describe "CodeBlocks" $ do
     it "should extract code blocks with correct properties from md" $ do
       mdToCodeBlocks (parseMarkdown testMdContent)
         `shouldBe` [ CodeBlock (defaultHints {hType = ModuleBlock "random"}) (NodeJs "console.log(1);\n"),
-                     CodeBlock (defaultHints {hType = Noop}) (Bash "echo 1;\n"),
                      CodeBlock
                        ( defaultHints
                            { hType = RunBlock "",

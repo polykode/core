@@ -25,10 +25,15 @@ Glue - module (for export)
 ```js
 const foobar = require('./modules/foobar.js');
 
-if (typeof foobar[$$fnname] === 'function')
-  foobar[$$fnname].apply(null, $$fnargs);
-else
-  throw new Error('not found')
+const returnValue = (key, result) =>
+  fetch(`/uffi/function-return/${key}?exec_id=${execId}`, { method: 'POST', body: result });
+
+if (typeof foobar[$$fnname] === 'function') {
+  const result = foobar[$$fnname].apply(null, $$fnargs);
+  returnValue($$fnname, result)
+} else {
+  throw new Error('Function not found')
+}
 ```
 
 

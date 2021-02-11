@@ -11,6 +11,10 @@
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Parallelize container pool creation
 
+## Problems
+  - [ ] idea - single fifo based api for interactions with server? (less language specific glue code)
+  - [X] RPC over WS?
+
 ## Ideas
   - [X] Isolated networks? (lxd . webserver) <-> (lxd . xmd server <-> (lxd . pool)))
   - [ ] Top level await support for js?
