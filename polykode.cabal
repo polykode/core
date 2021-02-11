@@ -24,6 +24,7 @@ common lib
     parsec,
     strict,
     text,
+    unordered-containers,
     unix
   default-language:    Haskell2010
 

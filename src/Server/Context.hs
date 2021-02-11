@@ -6,9 +6,11 @@ import Container.Algebra
 import Container.Eff
 import Container.Pool
 import Control.Concurrent.MVar
+import Control.Monad ((>=>))
 import qualified Data.Aeson as Json
 import qualified Data.ByteString.Lazy.Char8 as ByteString
 import qualified Data.Map as Map
+import qualified Network.WebSockets as WS
 import Utils
 
 data CodeModule = CodeModule String Code ModuleExports
@@ -16,57 +18,71 @@ data CodeModule = CodeModule String Code ModuleExports
 
 type DocumentDataStore = Map.Map String Json.Value
 
-data MdxContext = MdxContext
+-- clients ({ [execId] : last-rpc-id rpc-queue context modules  })
+
+data ClientState = ClientState
+  { csData :: DocumentDataStore,
+    csModules :: Map.Map String CodeModule,
+    csConnection :: [WS.Connection]
+  }
+
+data ServerContext = ServerContext
   { ctxPool :: ContainerPool,
     ctxCurrent :: MVar Int,
-    ctxDataStore :: MVar (Map.Map String DocumentDataStore),
-    ctxModules :: MVar (Map.Map String CodeModule)
+    ctxClients :: MVar (Map.Map String ClientState)
   }
 
 parseValue :: String -> Maybe Json.Value
 parseValue = Json.decode . ByteString.pack
 
-readVariable :: String -> String -> MdxContext -> IO (Maybe Json.Value)
+getClient :: String -> ServerContext -> IO (Maybe ClientState)
+getClient execId ctx = do
+  Map.lookup execId <$> (readMVar . ctxClients $ ctx)
+
+updateDataStore :: String -> ServerContext -> (DocumentDataStore -> DocumentDataStore) -> IO ()
+updateDataStore execId ctx fn = do
+  client <- getClient execId ctx
+  let newStore = fmap fn $ csData <$> client
+  getMaybeWithDef (pure ()) $ do
+    client <- client
+    newClient <- fmap (\d -> client {csData = d}) newStore
+    return $ modifyMVar_ (ctxClients ctx) $ return . Map.insert execId newClient
+
+readVariable :: String -> String -> ServerContext -> IO (Maybe Json.Value)
 readVariable execId varname ctx = do
-  store <- readMVar $ ctxDataStore ctx
-  return $ Map.lookup execId store >>= \store -> Map.lookup varname store
+  client <- getClient execId ctx
+  return $ client >>= Map.lookup varname . csData
 
-putVariable :: String -> String -> Json.Value -> MdxContext -> IO ()
-putVariable execId varname value ctx = do
-  store <- readMVar . ctxDataStore $ ctx
-  let variables = getMaybeWithDef Map.empty . Map.lookup execId $ store
-  let newVariables = Map.insert varname value variables
-  modifyMVar_ (ctxDataStore ctx) $ return . Map.insert execId newVariables
-  return ()
+putVariable :: String -> String -> Json.Value -> ServerContext -> IO ()
+putVariable execId varname value ctx =
+  updateDataStore execId ctx $ Map.insert varname value
 
-garbageCollect :: String -> MdxContext -> IO ()
+garbageCollect :: String -> ServerContext -> IO ()
 garbageCollect execId ctx =
-  modifyMVar_ (ctxDataStore ctx) $ return . Map.delete execId
+  modifyMVar_ (ctxClients ctx) $ return . Map.delete execId
 
 containerPool :: Int -> IO (Either Error ContainerPool)
 containerPool = withLxc . createContainerPool
 
-createMdxContext :: Int -> IO MdxContext
+createMdxContext :: Int -> IO ServerContext
 createMdxContext poolSize = do
   pool <- getEitherWithDef [] <$> containerPool poolSize
   currentRef <- newMVar 0
-  store <- newMVar Map.empty
-  moduleMap <- newMVar Map.empty
+  clients <- newMVar Map.empty
   return $
-    MdxContext
+    ServerContext
       { ctxPool = pool,
         ctxCurrent = currentRef,
-        ctxDataStore = store,
-        ctxModules = moduleMap
+        ctxClients = clients
       }
 
 cyclicIncrement max = (`mod` max) . (1 +)
 
-nextContainer :: MdxContext -> IO ()
+nextContainer :: ServerContext -> IO ()
 nextContainer ctx =
   modifyMVar_ (ctxCurrent ctx) $ return . cyclicIncrement (length . ctxPool $ ctx)
 
-getCurrentContainer :: MdxContext -> IO Container
+getCurrentContainer :: ServerContext -> IO Container
 getCurrentContainer ctx = do
   cIndex <- readMVar . ctxCurrent $ ctx
   return $ ctxPool ctx !! cIndex
