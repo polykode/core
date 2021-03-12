@@ -14,6 +14,12 @@ data Code
   | Unknown
   deriving (Show, Eq)
 
+toLangName :: Code -> String
+toLangName code = case code of
+  Bash _ -> "bash"
+  NodeJs _ -> "javascript"
+  Unknown -> "unknown"
+
 toCode :: String -> String -> Code
 toCode lang code = case lang of
   "bash" -> Bash code

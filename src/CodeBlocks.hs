@@ -37,7 +37,7 @@ instance Json.ToJSON CodeBlockResult where
     Json.object
       [ (Text.pack "type", toJsonString "run"),
         (Text.pack "name", toJsonString name),
-        (Text.pack "code", toJsonString . show $ code),
+        (Text.pack "lang", toJsonString . toLangName $ code),
         ( Text.pack "result",
           Json.object
             [ (Text.pack "exitCode", toJsonString . show $ exitCode),

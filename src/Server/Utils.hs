@@ -3,6 +3,8 @@
 
 module Server.Utils where
 
+import CodeBlocks
+import Container.Eff
 import Control.Monad (MonadPlus)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Aeson ((.:))
@@ -57,25 +59,18 @@ instance Json.FromJSON RequestAction where
 
 -- Needs to json
 data ResponseAction
-  = RsMd String -- Result of RqMd (cleanup on end)
+  = RsMd [CodeBlockResult] -- Result of RqMd (cleanup on end)
   | RsContext Json.Value -- On CtxGet
   | RsCall String String [Json.Value] -- Call to module exports
-  | RsReturn Json.Value --
+  | RsReturn Json.Value -- return value
+  | RsNull
   deriving (Show)
 
 instance Json.ToJSON ResponseAction where
-  toJSON (RsMd result) =
-    Json.object
-      [ ( "result",
-          Json.object -- TODO: Real result
-            [ ("exitCode", toJsonString . show $ 1),
-              ("stdout", toJsonString $ show result),
-              ("stderr", toJsonString "")
-            ]
-        )
-      ]
-  toJSON (RsContext result) = Json.object [("type", "ctx/get"), ("result", result)]
-  toJSON (RsReturn result) = Json.object [("type", "fn/return"), ("result", result)]
+  toJSON (RsMd nodes) = Json.object [("result", Json.toJSONList nodes)]
+  toJSON (RsContext result) = Json.object [("type", "ctx/get"), ("value", result)]
+  toJSON (RsReturn result) = Json.object [("type", "fn/return"), ("value", result)]
+  toJSON RsNull = Json.object []
   toJSON (RsCall mod fn params) =
     Json.object
       [ ("type", "fn/call"),
@@ -85,21 +80,21 @@ instance Json.ToJSON ResponseAction where
       ]
 
 data Request = Request
-  { rqId :: Integer,
+  { rqId :: String,
     rqAction :: RequestAction
   }
   deriving (Show)
 
-parseErrorRequest = Request (-1) $ RqBadRequest "Unable to parse request"
+parseErrorRequest = Request "" $ RqBadRequest "Unable to parse request"
 
 instance Json.FromJSON Request where
   parseJSON (Json.Object obj) = do
-    id <- obj .: "id" :: Parser Integer
+    id <- obj .: "id" :: Parser String
     action <- Json.parseJSON $ Json.Object obj
     return $ Request id action
 
 data Response = Response
-  { rsId :: Integer,
+  { rsId :: String,
     rsAction :: ResponseAction,
     rsError :: Maybe String
   }
@@ -108,7 +103,7 @@ data Response = Response
 instance Json.ToJSON Response where
   toJSON resp =
     Json.object $
-      [ ("id", Json.Number . fromInteger . rsId $ resp),
+      [ ("id", toJsonString . rsId $ resp),
         ("error", Json.String . T.pack . getMaybeWithDef "" . rsError $ resp)
       ]
         ++ extraProps

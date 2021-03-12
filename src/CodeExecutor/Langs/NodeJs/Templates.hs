@@ -12,30 +12,27 @@ contextTemplate :: String -> String -> String
 contextTemplate execId code =
   [r|
 const { context } = (() => {
-  const fetch = require('node-fetch');
-  const qs = require('querystring');
+  const proc = require('child_process');
   |]
     ++ var "execId" execId
     ++ var "baseUrl" serverBaseUrl
     ++ [r|
 
+  const call = (action, d) => {
+    const data = { ...d, action, exec_id: execId };
+    const { stdout, stderr } = proc.spawnSync('node', [
+      '/opt/scripts/rpc.js',
+      'send',
+      '--data', JSON.stringify(data),
+    ]);
+
+    const output = stdout.toString();
+    return output ? JSON.parse(output) : {};
+  };
+
   const context = new Proxy({}, {
-    get: (_, key) => {
-      return fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`)
-        .then(r => r.json())
-        .then(data => data.value)
-    },
-    set: (_, key, value) => {
-      const valueString = typeof value === 'string' ? value : JSON.stringify(value);
-      return fetch(`${baseUrl}/uffi/variable/${key}?exec_id=${execId}`, {
-        method: 'POST',
-        headers: {
-          'X-Exec-Id': execId,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: qs.stringify({ value: valueString }),
-      });
-    },
+    get: (_, key) => call('ctx/get', { name: key }).value,
+    set: (_, key, value) => void call('ctx/put', { name: key, value }),
   });
 
   return { context };

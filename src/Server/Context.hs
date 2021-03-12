@@ -10,6 +10,7 @@ import Control.Monad ((>=>))
 import qualified Data.Aeson as Json
 import qualified Data.ByteString.Lazy.Char8 as ByteString
 import qualified Data.Map as Map
+import Debug.Trace
 import qualified Network.WebSockets as WS
 import Utils
 
@@ -26,6 +27,8 @@ data ClientState = ClientState
     csConnection :: [WS.Connection]
   }
 
+emptyClientState = ClientState {csData = Map.empty, csModules = Map.empty, csConnection = []}
+
 data ServerContext = ServerContext
   { ctxPool :: ContainerPool,
     ctxCurrent :: MVar Int,
@@ -39,13 +42,20 @@ getClient :: String -> ServerContext -> IO (Maybe ClientState)
 getClient execId ctx = do
   Map.lookup execId <$> (readMVar . ctxClients $ ctx)
 
+initClientState :: String -> ServerContext -> IO ()
+initClientState execId ctx = do
+  let initClient = return . Map.insert execId emptyClientState
+  modifyMVar_ (ctxClients ctx) initClient
+
 updateDataStore :: String -> ServerContext -> (DocumentDataStore -> DocumentDataStore) -> IO ()
 updateDataStore execId ctx fn = do
+  cc <- readMVar . ctxClients $ ctx
   client <- getClient execId ctx
-  let newStore = fmap fn $ csData <$> client
   getMaybeWithDef (pure ()) $ do
     client <- client
-    newClient <- fmap (\d -> client {csData = d}) newStore
+    -- If nothing, create one
+    let newStore = fn . csData $ client
+    let newClient = client {csData = newStore}
     return $ modifyMVar_ (ctxClients ctx) $ return . Map.insert execId newClient
 
 readVariable :: String -> String -> ServerContext -> IO (Maybe Json.Value)

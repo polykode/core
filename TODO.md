@@ -6,18 +6,22 @@
   - [X] Setup network management for containers
   - [X] Setup unit tests for container code
   - [X] Get LXC to run code blocks serially (js, bash)
+  - [X] Get rpc working
+  - [ ] Make context data static inside templated code?
   - [ ] Create modules
   - [ ] Work on [modules](#modules)
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Parallelize container pool creation
 
 ## Problems
-  - [ ] idea - single fifo based api for interactions with server? (less language specific glue code)
   - [X] RPC over WS?
+  - [ ] Maybe refactor back to http?
+  - [X] idea - single fifo based api for interactions with server? (less language specific glue code)
+  - [ ] Validate module names
 
 ## Ideas
   - [X] Isolated networks? (lxd . webserver) <-> (lxd . xmd server <-> (lxd . pool)))
-  - [ ] Top level await support for js?
+  - [ ] Top level await support for js??
   - [ ] Some simple type validation? (if possible)
   - [ ] Simpler/Direct imports for same language? (inconsistent return values)
   - [ ] Global metadata with comments or metadata table

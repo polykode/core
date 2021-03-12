@@ -10,7 +10,7 @@ serverHost = "core.polykode.local"
 
 serverPort = 3000
 
-serverBaseUrl = "http://" ++ serverHost ++ ":" ++ show serverPort
+serverBaseUrl = "ws://" ++ serverHost ++ ":" ++ show serverPort
 
 serverConf =
   Conf
