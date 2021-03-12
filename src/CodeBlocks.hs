@@ -24,10 +24,10 @@ instance Json.FromJSON CodeBlock where
     name <- obj .: "name"
     lang <- obj .: "lang"
     code <- obj .: "code"
-    -- TODO: Parse dependencies
     return $ case ctype of
       "run" -> CodeBlock (defaultHints {hType = RunBlock name}) $ toCode lang code
       "module" -> CodeBlock (defaultHints {hType = ModuleBlock name}) $ toCode lang code
+      _ -> CodeBlock defaultHints $ toCode lang code
 
 data CodeBlockResult = RunBlockResult String Code Result | ModuleBlockResult String Code ModuleExports
   deriving (Show, Eq)
@@ -56,7 +56,7 @@ instance Json.ToJSON CodeBlockResult where
 
 -- Evaluate list of code blocks
 evaluateBlocks :: Has LxcIOErr sig m => String -> Container -> [CodeBlock] -> m [CodeBlockResult]
-evaluateBlocks execId container [] = return []
+evaluateBlocks _ _ [] = return []
 evaluateBlocks execId container (h : tl) = do
   blockResult <- case h of
     CodeBlock (Hints (RunBlock name) _) code ->

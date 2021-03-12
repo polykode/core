@@ -12,7 +12,6 @@ import Control.Algebra
 import Control.Carrier.Throw.Either
 import Control.Monad (void)
 import Control.Monad.IO.Class
-import Data.Kind (Type)
 import Debug.Trace
 import GHC.IO.Exception
 import System.IO
@@ -98,7 +97,3 @@ instance (MonadIO m, Algebra sig m) => Algebra (FileIOEff :+: sig) (FileIOC m) w
 
 withLxc :: ThrowC e (LxcIOC (FileIOC m)) a -> m (Either e a)
 withLxc = runFileIO . runLxcIO . runThrow
-
----
----
----

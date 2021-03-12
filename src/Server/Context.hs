@@ -6,11 +6,9 @@ import Container.Algebra
 import Container.Eff
 import Container.Pool
 import Control.Concurrent.MVar
-import Control.Monad ((>=>))
 import qualified Data.Aeson as Json
 import qualified Data.ByteString.Lazy.Char8 as ByteString
 import qualified Data.Map as Map
-import Debug.Trace
 import qualified Network.WebSockets as WS
 import Utils
 
@@ -49,11 +47,9 @@ initClientState execId ctx = do
 
 updateDataStore :: String -> ServerContext -> (DocumentDataStore -> DocumentDataStore) -> IO ()
 updateDataStore execId ctx fn = do
-  cc <- readMVar . ctxClients $ ctx
   client <- getClient execId ctx
   getMaybeWithDef (pure ()) $ do
     client <- client
-    -- If nothing, create one
     let newStore = fn . csData $ client
     let newClient = client {csData = newStore}
     return $ modifyMVar_ (ctxClients ctx) $ return . Map.insert execId newClient

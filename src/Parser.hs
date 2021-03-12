@@ -6,7 +6,6 @@ import CMark
 import CodeExecutor
 import Data.List
 import qualified Data.Text as Text
-import Debug.Trace
 import Text.Parsec
 import Utils
 import Prelude
@@ -75,6 +74,7 @@ parseHints = fmap (toHintConfig $ Hints {hType = RunBlock "", hDependencies = []
             HintLabel dep -> (dep, "*")
             HintExpr (HintLabel dep : HintLabel version : _) -> (dep, version)
             HintExpr (HintLabel dep : _) -> (dep, "*")
+            _ -> ("", "")
       _ -> toHintConfig hints tl -- Ignore rest
 
 wrapNodes :: [Node] -> [MarkdownNode]

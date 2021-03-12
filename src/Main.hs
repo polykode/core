@@ -6,19 +6,13 @@ import CodeBlocks
 import Config
 import Container.Algebra
 import Container.Eff
-import Container.Pool
-import Control.Applicative ((<$>))
-import Control.Concurrent (MVar, forkIO, killThread, threadDelay, threadWaitRead, threadWaitWrite)
+import Control.Concurrent (forkIO, killThread, threadWaitWrite)
 import Control.Exception (SomeException, handle)
 import Control.Monad (forever, void)
 import Control.Monad.IO.Class (liftIO)
-import Data.Aeson ((.:))
 import qualified Data.Aeson as Json
-import Data.Aeson.Types (Parser)
 import qualified Data.ByteString.Lazy as BS
-import Data.HashMap.Strict (toList)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import qualified Network.WebSockets as WS
 import Parser
 import Server.Context
@@ -26,14 +20,6 @@ import Server.Utils
 import System.Posix.Files
 import System.Posix.IO
 import Utils
-
-type Client = (T.Text, WS.Connection)
-
-addClient :: Client -> [Client] -> [Client]
-addClient client clients = client : clients
-
-removeClient :: Client -> [Client] -> [Client]
-removeClient client = filter ((/= fst client) . fst)
 
 sendResponse :: WS.Connection -> Response -> IO ()
 sendResponse conn resp = WS.sendTextData conn $ Json.encode resp
@@ -75,7 +61,7 @@ executeMdAction execId ctx = do
 debugLog req msg = liftIO . putStrLn $ ":: [" ++ show req ++ "] :: " ++ msg
 
 handleRequest :: ServerContext -> WS.Connection -> Request -> WS.ServerApp
-handleRequest ctx conn req pending = do
+handleRequest ctx conn req _pending = do
   let send r = sendResponse conn $ Response {rsId = rqId req, rsAction = r, rsError = Nothing}
   let request = rqAction req
   let log = debugLog request
@@ -106,10 +92,10 @@ handleRequest ctx conn req pending = do
             putStrLn $ "Ctx put:" ++ name ++ " -> " ++ show value
             putVariable execId name value ctx
             send $ RsContext value
-    RqCall execId mod fn params -> do
+    RqCall _execId _mod _fn _params -> do
       log ""
       send $ RsReturn $ Json.String "this was the return value"
-    RqReturn execId result -> do
+    RqReturn _execId result -> do
       log ""
       liftIO $ putStrLn $ "Return value:" ++ show result
     RqBadRequest e -> do

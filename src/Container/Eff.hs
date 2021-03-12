@@ -46,7 +46,7 @@ info :: Has LxcIOErr sig m => Container -> m (Either Error String)
 info = send . Info
 
 copy :: Has LxcIOErr sig m => Container -> String -> m Container
-copy c name = send (Copy c name) >>= liftEither
+copy c n = send (Copy c n) >>= liftEither
 
 exec :: Has LxcIOErr sig m => Container -> [String] -> m Result
 exec c = send . Exec c
@@ -63,7 +63,7 @@ createFileInContainer c filePath contents = do
     toFlatFileName f = "file" ++ map replacer f
       where
         replacer '/' = '-'
-        replacer c = c
+        replacer ch = ch
 
 --
 --

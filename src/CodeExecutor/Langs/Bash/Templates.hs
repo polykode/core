@@ -27,4 +27,4 @@ context() {
     ++ code
 
 importsTemplate :: String -> String -> String
-importsTemplate execId code = code
+importsTemplate _execId code = code

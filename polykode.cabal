@@ -10,6 +10,7 @@ build-type:          Simple
 
 common lib
   hs-source-dirs: src
+  ghc-options: -Wdefault -Wextra -Wno-unused-do-bind
   build-depends:
     aeson,
     base,

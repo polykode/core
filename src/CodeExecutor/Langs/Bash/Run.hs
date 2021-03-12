@@ -6,8 +6,6 @@ import CodeExecutor.Langs.Bash.Templates
 import CodeExecutor.Utils
 import Container.Eff
 import Control.Algebra
-import Control.Monad.IO.Class
-import GHC.IO.Exception
 
 wrap execId = importsTemplate execId . contextTemplate execId
 
