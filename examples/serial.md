@@ -2,36 +2,35 @@
 Content for stuffff
 
 ```bash
-node -v
-context wow 'babablack sheep';
+context bbb wow
+
+echo "Hello: $(context bbb)";
 ```
 
 ```js
-context.hello = "world";
-context.mynum = 5;
-context.list = [1, 2, 3, 4];
+context.foobarjs = 'World';
+context.num = 200;
+
+console.log('###', context.foobarjs);
 ```
 
+<!--@ (noop) -->
 ```js
-// import { fn1 } from '@@foobar';
-
-context.hello.then(console.log);
-context.mynum.then(console.log);
-context.list.then(l => l.map(n => n * 5)).then(console.log);
-context.wow.then(console.log);
-
-console.log("Fin of js");
-
-// console.log("fuck you", fn1(a, b))
+console.log("Dont exec this boey", 5 * 20);
 ```
 
+<!--@ (noop) -->
 ```bash
 val=200
 
-context mynum foobar;
-
 echo "value $val"
 echo "fuck you"
-
-echo "CONTEXT::: $(context hello) $(context mynum)"
 ```
+
+<!--@ (noop) -->
+```js
+console.log('Values::::::::::::::::::::::::');
+context.foobarjs.then(console.log);
+context.num.then(console.log);
+```
+
