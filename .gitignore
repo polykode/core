@@ -22,3 +22,6 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 result
+node_modules
+package.json
+package-lock.json
