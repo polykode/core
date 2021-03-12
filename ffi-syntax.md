@@ -1,14 +1,5 @@
 # FFI Syntax
 
-## Strategy
-
-### HTTP
-
-- `GET /uffi/variable/{var}?exec_id=1` - `{ "status": "success", "value": "hello" }`
-- `POST /uffi/variable/{var}?exec_id=1` - `request { "value": "hello" }`
-- `GET /uffi/call/{module}/{fn}?exec_id=1&args=[1,2,3]` - `{ "status": "success", "value": "hello" }`
-
-
 ## Languages
 
 ### JS
