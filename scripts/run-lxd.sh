@@ -99,7 +99,7 @@ case "$cmd" in
   cb) create && build && echo "Built successfully" ;;
   ccb) clean; create && build && echo "Built successfully" ;;
   run) run && echo "Ran successfully" ;;
-  shell) lxc exec $CONTAINER_NAME -- /bin/bash ;;
+  shell) lxc exec $CONTAINER_NAME -- sh -c "cd $WORKDIR && /bin/bash" ;;
   stop) stop_container ;;
   clean) clean ;;
 esac;

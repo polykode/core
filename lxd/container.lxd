@@ -51,8 +51,12 @@ build() {
 
   # Install node modules
   RUN npm i -g \
-    node-fetch \
+    n \
+    ws \
   ;
+
+  # Node version 15.9.0
+  RUN n 15.9.0
 
   RUN chmod 777 /tmp
   #RUN chown -R root: /
