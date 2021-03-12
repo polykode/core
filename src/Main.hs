@@ -48,7 +48,6 @@ runMdFile execId c = do
   threadWaitWrite fd
   result <- withLxc . evaluateBlocks execId c $ mdTree
   killThread threadId
-  putStrLn "------- Killed the shit"
   return result
   where
     socketFile = "/tmp/polykode-core-rpc.sock"
@@ -137,8 +136,3 @@ main = do
   ctx <- createMdxContext 3
   putStrLn $ "Server is running on port " ++ show serverPort
   WS.runServer "0.0.0.0" serverPort $ application ctx
-
---
---
---
---

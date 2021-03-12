@@ -17,7 +17,6 @@ common lib
     containers,
     cmark,
     fused-effects,
-    happstack-server,
     process,
     raw-strings-qq,
     websockets,
