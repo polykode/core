@@ -14,4 +14,4 @@ wrap execId = importsTemplate execId . contextTemplate execId
 run :: Has LxcIOErr sig m => String -> Container -> String -> m Result
 run execId c code = do
   filePath <- createCodeFile "code.bash" c . wrap execId $ code
-  exec c ["bash", filePath]
+  runCmd c [] ["bash", filePath]
