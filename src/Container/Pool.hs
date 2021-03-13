@@ -3,7 +3,6 @@ module Container.Pool where
 import Container.Eff
 import Control.Algebra
 import Control.Monad (void)
-import Utils
 
 type ContainerPool = [Container]
 
