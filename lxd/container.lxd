@@ -65,11 +65,6 @@ build() {
   local user="runner"
   CREATE_USER $user
 
-  #RUN sh -c "mkdir -m 0755 /nix && chown $user /nix || true 2>/dev/null"
-  #RUN_AS $user 'bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon"'
-  #RUN_AS $user "bash -c 'echo source /home/$user/.nix-profile/etc/profile.d/nix.sh > ~/.bashrc'"
-  #RUN_AS $user "bash -c 'source ~/.bashrc; nix-shell $WORKDIR/code/shells/build.nix --run \"echo Installed\"'"
-
   # Disable networking
   # iptables -I INPUT -i virbr0 -j REJECT
   # iptables -I OUTPUT -o virbr0 -j DROP

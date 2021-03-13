@@ -7,7 +7,8 @@
   - [X] Setup unit tests for container code
   - [X] Get LXC to run code blocks serially (js, bash)
   - [X] Get rpc working
-  - [ ] Parallel container cloning
+  - [X] Parallel container cloning
+  - [ ] Make sure node version for rpc script stays consistent
   - [ ] Refactor server code as effect and compose with container
   - [ ] Stream output
   - [ ] Make context data static inside templated code?
@@ -15,6 +16,11 @@
   - [ ] Work on [modules](#modules)
   - [ ] Finalize javascript [adapter](#adapter responsibilities)
   - [ ] Parallelize container pool creation
+
+## Client
+  - [ ] Elm OR Purescript OR Reasonml
+  - [ ] 
+
 
 ## Problems
   - [X] RPC over WS?

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 IMAGE=ubuntu:20.04
-CONTAINER_NAME=test
+CONTAINER_NAME=polykode-core
 WORKDIR=/opt
 PROFILE_NAME=profile-$CONTAINER_NAME
 DOMAIN_NAME=core.polykode.local
@@ -15,7 +15,8 @@ config:
 description: XMD profile
 devices:
 $(D_EXPOSE_PORT xmd 3000 3000)
-$(D_MOUNT code $(pwd) "$WORKDIR/code")
+$(D_MOUNT code $(pwd)/core "$WORKDIR/code")
+$(D_MOUNT lxd $(pwd)/lxd "$WORKDIR/lxd")
   root:
     type: disk
     path: /
@@ -58,7 +59,7 @@ build() {
 
   RUN lxd init --auto
   # Setup sandbox template container
-  local lxd_file="${WORKDIR}/code/lxd/container.lxd"
+  local lxd_file="${WORKDIR}/lxd/container.lxd"
   RUN run-lxd $lxd_file create
   RUN run-lxd $lxd_file build
   RUN run-lxd $lxd_file stop

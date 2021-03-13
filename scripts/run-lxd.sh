@@ -22,6 +22,8 @@ run() { echo "run function must be defined in lxd file"; exit 1; }
 source "$config";
 
 load_profile() {
+  #profile;
+  #exit 1;
   echo "- Loading profile $PROFILE_NAME"
   lxc profile create $PROFILE_NAME 2>/dev/null
   profile | lxc profile edit $PROFILE_NAME
