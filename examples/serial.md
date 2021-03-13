@@ -1,17 +1,17 @@
 # Helo world
 Content for stuffff
 
-```bash
-context bbb wow
-
-echo "Hello: $(context bbb)";
-```
-
 ```js
 context.foobarjs = 'World';
 context.num = 200;
 
 console.log('###', context.foobarjs);
+```
+
+```bash
+context bbb wow
+
+echo "Hello: $(context bbb)";
 ```
 
 <!--@ (noop) -->
