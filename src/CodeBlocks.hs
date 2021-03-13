@@ -19,7 +19,7 @@ data CodeBlock = CodeBlock Hints Code
   deriving (Show, Eq)
 
 instance Json.FromJSON CodeBlock where
-  parseJSON (Json.Object obj) = do
+  parseJSON = Json.withObject "CodeBlock" $ \obj -> do
     ctype <- obj .: "type" :: Parser String
     name <- obj .: "name"
     lang <- obj .: "lang"
@@ -73,7 +73,3 @@ mdToCodeBlocks (MdRenderNode _ children : tl) = mdToCodeBlocks children ++ mdToC
 mdToCodeBlocks (MdCodeBlock hints code : tl) = newNodes ++ mdToCodeBlocks tl
   where
     newNodes = [CodeBlock hints code | hType hints /= Noop]
-
---
---
---

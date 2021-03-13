@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Server.Utils where
+module Server.Types where
 
 import CodeBlocks
 import Data.Aeson ((.:))
@@ -14,12 +13,13 @@ import Utils
 
 type ExecId = String
 
+-- | Context action
 data CtxAction
   = CtxGet String
   | CtxPut String Json.Value
   deriving (Show)
 
--- Needs from json
+-- | Request action
 data RequestAction
   = RqMd -- Instant result (execute md)
   | RqContext ExecId CtxAction -- CtxGet -> Instant result (map lookup) | CtxPut -> No result
@@ -29,7 +29,7 @@ data RequestAction
   deriving (Show)
 
 instance Json.FromJSON RequestAction where
-  parseJSON (Json.Object obj) = do
+  parseJSON = Json.withObject "RequestAction" $ \obj -> do
     action <- obj .: "action" :: Parser String
     case action of
       "md/execute" -> return RqMd
@@ -54,7 +54,7 @@ instance Json.FromJSON RequestAction where
         return $ RqReturn execId result
       _ -> return $ RqBadRequest $ "Invalid action " ++ action
 
--- Needs to json
+-- | Response action object
 data ResponseAction
   = RsMd [CodeBlockResult] -- Result of RqMd (cleanup on end)
   | RsContext Json.Value -- On CtxGet
@@ -76,6 +76,7 @@ instance Json.ToJSON ResponseAction where
         ("params", Json.toJSONList params)
       ]
 
+-- | Api request object
 data Request = Request
   { rqId :: String,
     rqAction :: RequestAction
@@ -85,11 +86,12 @@ data Request = Request
 parseErrorRequest = Request "" $ RqBadRequest "Unable to parse request"
 
 instance Json.FromJSON Request where
-  parseJSON (Json.Object obj) = do
+  parseJSON = Json.withObject "Request" $ \obj -> do
     id <- obj .: "id" :: Parser String
     action <- Json.parseJSON $ Json.Object obj
     return $ Request id action
 
+-- | Api response object
 data Response = Response
   { rsId :: String,
     rsAction :: ResponseAction,
