@@ -24,8 +24,8 @@ cleanupContainer c = stop c >> delete c
 
 toContainerName n = "container--" ++ show n
 
-createContainerPool :: Has LxcIOErr sig m => Int -> m ContainerPool
-createContainerPool count = concatM . map (createContainer . toContainerName) $ [1 .. count]
+createContainerPool :: Has LxcIOErr sig m => Int -> [m Container]
+createContainerPool count = map (createContainer . toContainerName) [1 .. count]
 
 cleanContainerPool :: Has LxcIOErr sig m => ContainerPool -> m ()
-cleanContainerPool = void . concatM . map cleanupContainer
+cleanContainerPool = void . mapM cleanupContainer

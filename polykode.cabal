@@ -21,6 +21,7 @@ common lib
     process,
     raw-strings-qq,
     websockets,
+    parallel-io,
     parsec,
     strict,
     text,

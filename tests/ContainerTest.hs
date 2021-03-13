@@ -40,7 +40,7 @@ tests = describe "Container" $ do
     describe "createContainerPool" $ do
       pool <-
         let mockProgram :: IO (Either Error ContainerPool)
-            mockProgram = runMock $ createContainerPool 3
+            mockProgram = fmap sequence . mapM runMock $ createContainerPool 3
          in runIO mockProgram
       it "should return a pool of containers" $ do
         pool `shouldBe` Right [Container "container--1", Container "container--2", Container "container--3"]

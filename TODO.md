@@ -7,7 +7,9 @@
   - [X] Setup unit tests for container code
   - [X] Get LXC to run code blocks serially (js, bash)
   - [X] Get rpc working
+  - [ ] Parallel container cloning
   - [ ] Refactor server code as effect and compose with container
+  - [ ] Stream output
   - [ ] Make context data static inside templated code?
   - [ ] Create modules
   - [ ] Work on [modules](#modules)

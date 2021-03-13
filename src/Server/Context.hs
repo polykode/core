@@ -67,12 +67,13 @@ garbageCollect :: String -> ServerContext -> IO ()
 garbageCollect execId ctx =
   modifyMVar_ (ctxClients ctx) $ return . Map.delete execId
 
-containerPool :: Int -> IO (Either Error ContainerPool)
-containerPool = withLxc . createContainerPool
+containerPool :: Int -> IO [Either Error Container]
+containerPool = parallelIO . map withLxc . createContainerPool
 
 createMdxContext :: Int -> IO ServerContext
 createMdxContext poolSize = do
-  pool <- getEitherWithDef [] <$> containerPool poolSize
+  -- TODO: Filter errors in container pool
+  pool <- map (getEitherWithDef $ Container "x") <$> containerPool poolSize
   currentRef <- newMVar 0
   clients <- newMVar Map.empty
   return $
