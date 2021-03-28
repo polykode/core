@@ -8,7 +8,7 @@ lxcInitThreadPoolSize = 3 :: Int
 
 serverHost = "core.polykode.local"
 
-serverPort = 3000 :: Int
+serverPort = 3005 :: Int
 
 serverBaseUrl = "ws://" ++ serverHost ++ ":" ++ show serverPort
 

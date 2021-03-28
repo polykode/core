@@ -20,14 +20,11 @@ data CodeBlock = CodeBlock Hints Code
 
 instance Json.FromJSON CodeBlock where
   parseJSON = Json.withObject "CodeBlock" $ \obj -> do
-    ctype <- obj .: "type" :: Parser String
     name <- obj .: "name"
     lang <- obj .: "lang"
     code <- obj .: "code"
-    return $ case ctype of
-      "run" -> CodeBlock (defaultHints {hType = RunBlock name}) $ toCode lang code
-      "module" -> CodeBlock (defaultHints {hType = ModuleBlock name}) $ toCode lang code
-      _ -> CodeBlock defaultHints $ toCode lang code
+    -- TODO: Parse annotations (`annotations`)
+    return $ CodeBlock (defaultHints {hType = RunBlock name}) $ toCode lang code
 
 data CodeBlockResult = RunBlockResult String Code Result | ModuleBlockResult String Code ModuleExports
   deriving (Show, Eq)

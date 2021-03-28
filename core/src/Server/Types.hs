@@ -21,7 +21,7 @@ data CtxAction
 
 -- | Request action
 data RequestAction
-  = RqMd -- Instant result (execute md)
+  = RqExecute [CodeBlock] -- Instant result (execute md)
   | RqContext ExecId CtxAction -- CtxGet -> Instant result (map lookup) | CtxPut -> No result
   | RqCall ExecId String String [Json.Value] -- Respond after the return value is recieved
   | RqReturn ExecId Json.Value -- No result ()
@@ -32,7 +32,9 @@ instance Json.FromJSON RequestAction where
   parseJSON = Json.withObject "RequestAction" $ \obj -> do
     action <- obj .: "action" :: Parser String
     case action of
-      "md/execute" -> return RqMd
+      "blocks/execute" -> do
+        codeblocks <- obj .: "blocks" :: Parser [CodeBlock]
+        return $ RqExecute codeblocks
       "ctx/get" -> do
         execId <- obj .: "exec_id"
         name <- obj .: "name"
@@ -56,7 +58,7 @@ instance Json.FromJSON RequestAction where
 
 -- | Response action object
 data ResponseAction
-  = RsMd [CodeBlockResult] -- Result of RqMd (cleanup on end)
+  = RsExecute [CodeBlockResult] -- Result of RqExecute (cleanup on end)
   | RsContext Json.Value -- On CtxGet
   | RsCall String String [Json.Value] -- Call to module exports
   | RsReturn Json.Value -- return value
@@ -64,7 +66,7 @@ data ResponseAction
   deriving (Show)
 
 instance Json.ToJSON ResponseAction where
-  toJSON (RsMd nodes) = Json.object [("result", Json.toJSONList nodes)]
+  toJSON (RsExecute nodes) = Json.object [("type", "blocks/result"), ("result", Json.toJSONList nodes)]
   toJSON (RsContext result) = Json.object [("type", "ctx/get"), ("value", result)]
   toJSON (RsReturn result) = Json.object [("type", "fn/return"), ("value", result)]
   toJSON RsNull = Json.object []

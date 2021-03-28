@@ -23,6 +23,7 @@ toLangName code = case code of
 toCode :: String -> String -> Code
 toCode lang code = case lang of
   "bash" -> Bash code
+  "shell" -> Bash code
   "javascript" -> NodeJs code
   "js" -> NodeJs code
   _ -> Unknown

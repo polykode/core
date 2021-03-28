@@ -33,10 +33,9 @@ runMdFile execId c codeblocks = do
   killThread threadId
   return result
 
-executeMdAction :: String -> ServerContext -> IO [CodeBlockResult]
-executeMdAction execId ctx = do
+executeBlocks :: String -> ServerContext -> [CodeBlock] -> IO [CodeBlockResult]
+executeBlocks execId ctx codeblocks = do
   result <- do
-    codeblocks <- mdToCodeBlocks . parseMarkdown <$> readFile "./examples/serial.md"
     container <- getCurrentContainer ctx
     putVariable execId "__exec_id__" (Json.String . T.pack $ execId) ctx
     nextContainer ctx
@@ -52,13 +51,13 @@ handleRequest ctx conn req _pending = do
   let request = rqAction req
   let log = debugLog request
   case request of
-    RqMd -> do
+    RqExecute blocks -> do
       let execId = "foobar"
       log execId
       initClientState execId ctx
-      result <- executeMdAction execId ctx
+      result <- executeBlocks execId ctx blocks
       garbageCollect execId ctx
-      send $ RsMd result
+      send $ RsExecute result
     RqContext execId act -> do
       case act of
         CtxGet name -> do
