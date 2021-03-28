@@ -14,7 +14,7 @@ config:
   raw.idmap: both 1000 0
 description: XMD profile
 devices:
-$(D_EXPOSE_PORT xmd 3000 3000)
+$(D_EXPOSE_PORT xmd 3005 3005)
 $(D_MOUNT code $(pwd)/core "$WORKDIR/code")
 $(D_MOUNT lxd $(pwd)/lxd "$WORKDIR/lxd")
   root:
